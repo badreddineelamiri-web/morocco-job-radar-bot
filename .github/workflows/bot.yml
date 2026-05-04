@@ -38,7 +38,7 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           DRY_RUN: ${{ secrets.DRY_RUN }}
-          REQUEST_TIMEOUT: 12
+          REQUEST_TIMEOUT: 5
           GOV_MAX_ITEMS_PER_SOURCE: 4
           MAX_JOBS_PER_RUN: 4
 

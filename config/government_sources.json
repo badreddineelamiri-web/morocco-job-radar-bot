@@ -62,5 +62,73 @@
     "url": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours",
     "category": "local_government_jobs",
     "enabled": true
+  },
+  {
+    "name": "OFPPT - Plateforme officielle de recrutement",
+    "type": "official_agency",
+    "country": "morocco",
+    "url": "https://recrutement.ofppt.ma/offres?page=1",
+    "category": "public_agency_jobs",
+    "parser": "ofppt",
+    "enabled": true
+  },
+  {
+    "name": "OFPPT - Offres d'emploi",
+    "type": "official_agency",
+    "country": "morocco",
+    "url": "https://www.ofppt.ma/fr/offres-d-emploi",
+    "category": "public_agency_jobs",
+    "parser": "official_links",
+    "keywords": ["recrutement", "emploi", "offre", "candidature", "concours"],
+    "enabled": true
+  },
+  {
+    "name": "maBourse - Ministère de l'Enseignement Supérieur",
+    "type": "scholarship",
+    "country": "morocco",
+    "url": "https://mabourse.enssup.gov.ma/bourse",
+    "category": "scholarships",
+    "parser": "mabourse",
+    "enabled": true
+  },
+  {
+    "name": "Ministère de l'Enseignement Supérieur - Actualités",
+    "type": "scholarship",
+    "country": "morocco",
+    "url": "https://www.enssup.gov.ma/",
+    "category": "scholarships_and_training",
+    "parser": "official_links",
+    "keywords": ["bourse", "bours", "candidature", "formation", "doctorat", "master", "concours", "appel"],
+    "enabled": true
+  },
+  {
+    "name": "AMCI - Coopération et bourses",
+    "type": "scholarship",
+    "country": "morocco",
+    "url": "https://www.amci.ma/",
+    "category": "scholarships_and_training",
+    "parser": "official_links",
+    "keywords": ["bourse", "bours", "candidature", "formation", "programme", "appel"],
+    "enabled": true
+  },
+  {
+    "name": "ONDA - Recrutement",
+    "type": "government",
+    "country": "morocco",
+    "url": "https://www.onda.ma/Je-d%C3%A9couvre-ONDA/Ressources-humaines/Recrutement-2025",
+    "category": "public_agency_jobs",
+    "parser": "official_links",
+    "keywords": ["recrutement", "candidats", "concours", "poste", "emploi"],
+    "enabled": true
+  },
+  {
+    "name": "FMPS - Offres d'emploi",
+    "type": "official_agency",
+    "country": "morocco",
+    "url": "https://fmps.ma/en/espace-rh-offre-demploi-en/",
+    "category": "education_jobs",
+    "parser": "official_links",
+    "keywords": ["offre", "emploi", "recrutement", "candidature", "poste"],
+    "enabled": true
   }
 ]

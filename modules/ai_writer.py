@@ -18,7 +18,20 @@ def _is_government_job(job: dict[str, Any]) -> bool:
     return job.get("job_type") == "government"
 
 
+def _is_scholarship(job: dict[str, Any]) -> bool:
+    return job.get("job_type") == "scholarship" or job.get("source_type") == "scholarship"
+
+
 def _fallback_hashtags(job: dict[str, Any]) -> list[str]:
+    if _is_scholarship(job):
+        return [
+            "#منح_دراسية",
+            "#فرص_للمغاربة",
+            "#الدراسة_والتكوين",
+            "#Bourses",
+            "#Opportunites_Maroc",
+            "#Maroc",
+        ]
     if _is_government_job(job):
         return [
             "#مباريات_التوظيف",
@@ -127,6 +140,32 @@ def fallback_government_post(job: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def fallback_scholarship_post(job: dict[str, Any]) -> dict[str, Any]:
+    hashtags = _fallback_hashtags(job)
+    title = _value_or_missing(job.get("title"))
+    organization = _value_or_missing(job.get("company"))
+    deadline = _value_or_missing(job.get("deadline"))
+
+    facebook_post = (
+        "فرصة جديدة للمغاربة\n\n"
+        "التفاصيل:\n"
+        f"- الفرصة: {title}\n"
+        f"- الجهة: {organization}\n"
+        f"- آخر أجل: {deadline}\n\n"
+        "ملاحظة مهمة:\n"
+        "يرجى مراجعة المصدر الرسمي للتأكد من شروط الترشيح، الوثائق المطلوبة، والآجال النهائية.\n\n"
+        "رابط التفاصيل أو التقديم موجود في أول تعليق.\n\n"
+        + " ".join(hashtags)
+    )
+    return {
+        "facebook_post": facebook_post,
+        "first_comment": _first_comment(job),
+        "image_title": title[:90],
+        "category": "منحة أو فرصة تكوين",
+        "hashtags": hashtags,
+    }
+
+
 def fallback_private_post(job: dict[str, Any]) -> dict[str, Any]:
     hashtags = _fallback_hashtags(job)
     title = _value_or_missing(job.get("title"))
@@ -158,6 +197,8 @@ def fallback_private_post(job: dict[str, Any]) -> dict[str, Any]:
 
 
 def fallback_post(job: dict[str, Any]) -> dict[str, Any]:
+    if _is_scholarship(job):
+        return fallback_scholarship_post(job)
     return fallback_government_post(job) if _is_government_job(job) else fallback_private_post(job)
 
 

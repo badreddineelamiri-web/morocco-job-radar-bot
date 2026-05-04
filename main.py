@@ -13,6 +13,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
+from collections import defaultdict, deque
 
 sys.path.insert(0, str(Path(__file__).parent / "modules"))
 
@@ -80,6 +81,32 @@ def process_job(job: dict[str, Any]) -> str:
         return "failed"
 
 
+def _round_robin_by_source(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Spread publishing across sources so one busy portal does not dominate."""
+    groups: dict[str, deque[dict[str, Any]]] = defaultdict(deque)
+    for job in jobs:
+        source_key = str(job.get("source") or job.get("source_page") or "unknown")
+        groups[source_key].append(job)
+
+    ordered: list[dict[str, Any]] = []
+    source_order = deque(groups.keys())
+    while source_order:
+        source_key = source_order.popleft()
+        group = groups[source_key]
+        if group:
+            ordered.append(group.popleft())
+        if group:
+            source_order.append(source_key)
+    return ordered
+
+
+def prioritize_jobs(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Prefer fresh items and rotate among sources before processing."""
+    fresh = [job for job in jobs if not is_job_published(job)]
+    already_seen = [job for job in jobs if is_job_published(job)]
+    return _round_robin_by_source(fresh) + _round_robin_by_source(already_seen)
+
+
 def main() -> None:
     """Run one job radar cycle."""
     LOGGER.info("Starting Morocco Job Radar Bot...")
@@ -96,6 +123,7 @@ def main() -> None:
         LOGGER.warning("No jobs found. Exiting without publishing.")
         return
 
+    jobs = prioritize_jobs(jobs)
     LOGGER.info("Found %d jobs to scan; target is %d new publish(es).", len(jobs), max_jobs)
 
     published_count = 0

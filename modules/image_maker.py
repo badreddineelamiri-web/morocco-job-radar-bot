@@ -279,8 +279,12 @@ def _base_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
 
 
 def _detail_items(job: dict[str, Any]) -> list[tuple[str, str]]:
-    final_label = "آخر أجل" if _is_government_job(job) else "نمط العمل"
-    final_value = job.get("deadline") if _is_government_job(job) else ("عن بعد" if job.get("remote") else "حسب الإعلان")
+    if job.get("deadline") or job.get("job_type") in {"government", "scholarship"}:
+        final_label = "آخر أجل"
+        final_value = job.get("deadline")
+    else:
+        final_label = "نمط العمل"
+        final_value = "عن بعد" if job.get("remote") else "حسب الإعلان"
     return [
         ("المؤسسة", _value_or_missing(job.get("company"))),
         ("المدينة", _value_or_missing(job.get("location"))),

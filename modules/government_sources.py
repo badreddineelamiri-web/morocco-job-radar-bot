@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import re
+import warnings
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlparse
@@ -21,12 +22,13 @@ import requests
 from bs4 import BeautifulSoup, Tag
 from requests import Session
 from requests.adapters import HTTPAdapter
+from urllib3.exceptions import InsecureRequestWarning
 from urllib3.util.retry import Retry
 
 
 LOGGER = logging.getLogger(__name__)
 CONFIG_PATH = Path("config/government_sources.json")
-REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "12"))
+REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "5"))
 USER_AGENT = (
     "MoroccoJobRadarBot/1.0 "
     "(official-job-monitor; contact: configure-your-email@example.com)"
@@ -37,9 +39,9 @@ OPEN_DATA_PACKAGE_SEARCH_URL = "https://data.gov.ma/data/api/3/action/package_se
 def _session() -> Session:
     session = requests.Session()
     retry = Retry(
-        total=2,
-        connect=2,
-        read=1,
+        total=0,
+        connect=0,
+        read=0,
         backoff_factor=0.8,
         status_forcelist=(429, 500, 502, 503, 504),
         allowed_methods=("GET",),
@@ -51,6 +53,7 @@ def _session() -> Session:
 
 
 HTTP = _session()
+warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
 
 def _clean_text(value: str | None) -> str:
@@ -240,6 +243,7 @@ def _normalize_government_job(
     reference: str = "",
     category: str = "",
     agency_type: str = "government",
+    job_type: str = "government",
     tags: list[str] | None = None,
     application_url: str = "",
 ) -> dict[str, Any]:
@@ -263,7 +267,7 @@ def _normalize_government_job(
         "deadline": deadline,
         "exam_date": exam_date,
         "positions": positions,
-        "job_type": "government",
+        "job_type": job_type,
         "source_type": agency_type,
         "remote": False,
         "tags": tags or [category, "Morocco", "Official"],
@@ -462,6 +466,132 @@ def _parse_collectivites(source: dict[str, Any], soup: BeautifulSoup) -> list[di
     return jobs
 
 
+def _parse_ofppt(source: dict[str, Any], soup: BeautifulSoup) -> list[dict[str, Any]]:
+    jobs: list[dict[str, Any]] = []
+    source_url = source["url"]
+    candidates = soup.select("article") or soup.select("table tr")
+
+    for item in candidates[:80]:
+        text = _clean_text(item.get_text(" ", strip=True))
+        if len(text) < 25 or "référence" not in text.lower():
+            continue
+        if "expirée" in text.lower() or "expiree" in text.lower():
+            continue
+        link = _first_link(item, source_url)
+        title_node = item.find(["h1", "h2", "h3", "h4", "a"])
+        title = _clean_text(title_node.get_text(" ", strip=True)) if title_node else text[:100]
+        if len(title) < 5 or "ofppt" == title.lower():
+            continue
+        reference_match = re.search(r"R[ée]f[ée]rence\s*:?\s*([A-Z0-9 /\-]+)", text, re.IGNORECASE)
+        deadline = _extract_date_near(text, ["Date d.expiration", "Dernier Délai", "Date limite", "آخر أجل"])
+
+        jobs.append(
+            _normalize_government_job(
+                source="ofppt-recrutement",
+                title=title,
+                company="OFPPT",
+                location="Morocco",
+                description=text,
+                url=link,
+                source_url=source_url,
+                deadline=deadline,
+                reference=reference_match.group(1).strip() if reference_match else link,
+                category=source.get("category", ""),
+                agency_type="public_agency",
+                tags=["OFPPT", "Recrutement", "Morocco"],
+            )
+        )
+    return jobs
+
+
+def _parse_mabourse(source: dict[str, Any], soup: BeautifulSoup) -> list[dict[str, Any]]:
+    jobs: list[dict[str, Any]] = []
+    source_url = source["url"]
+    candidates = soup.select("article, .views-row, .card, .item, li")
+    if not candidates:
+        candidates = [link.parent for link in soup.find_all("a", href=True) if isinstance(link.parent, Tag)]
+
+    useful_words = ("bourse", "bours", "candidature", "programme", "formation", "منحة", "منح", "ترشيح")
+    for item in candidates[:120]:
+        text = _clean_text(item.get_text(" ", strip=True))
+        if len(text) < 18 or not any(word in text.lower() for word in useful_words):
+            continue
+        link = _first_link(item, source_url)
+        title_node = item.find(["h1", "h2", "h3", "h4", "a"])
+        title = _clean_text(title_node.get_text(" ", strip=True)) if title_node else text[:100]
+        if len(title) < 6:
+            continue
+
+        jobs.append(
+            _normalize_government_job(
+                source="mabourse-enssup",
+                title=title,
+                company="Ministère de l'Enseignement Supérieur",
+                location="Morocco",
+                description=text,
+                url=link,
+                source_url=source_url,
+                deadline=_extract_date_near(text, ["Date de clôture", "Date limite", "Délai", "آخر أجل"]),
+                reference=link,
+                category=source.get("category", ""),
+                agency_type="scholarship",
+                job_type="scholarship",
+                tags=["Bourse", "Etudes", "Morocco"],
+            )
+        )
+    return jobs
+
+
+def _parse_official_links(source: dict[str, Any], soup: BeautifulSoup) -> list[dict[str, Any]]:
+    jobs: list[dict[str, Any]] = []
+    source_url = source["url"]
+    include_keywords = [str(item).lower() for item in source.get("keywords", [])]
+    if not include_keywords:
+        include_keywords = [
+            "recrutement",
+            "offre",
+            "emploi",
+            "concours",
+            "candidature",
+            "bourse",
+            "formation",
+            "منحة",
+            "مباراة",
+            "توظيف",
+            "ترشيح",
+        ]
+
+    seen: set[str] = set()
+    for link_node in soup.find_all("a", href=True)[:180]:
+        title = _clean_text(link_node.get_text(" ", strip=True))
+        url = urljoin(source_url, str(link_node["href"]))
+        visible = f"{title} {url}".lower()
+        if len(title) < 12 or not any(keyword in visible for keyword in include_keywords):
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        text = _clean_text((link_node.parent.get_text(" ", strip=True) if isinstance(link_node.parent, Tag) else title))
+        jobs.append(
+            _normalize_government_job(
+                source=urlparse(source_url).netloc.replace("www.", ""),
+                title=title,
+                company=source.get("name", "Official source"),
+                location="Morocco",
+                description=text or title,
+                url=url,
+                source_url=source_url,
+                deadline=_extract_date_near(text, ["Date limite", "Dernier délai", "Date d.expiration", "آخر أجل"]),
+                reference=url,
+                category=source.get("category", ""),
+                agency_type=source.get("type", "government"),
+                job_type="scholarship" if "bourse" in visible or "منح" in visible or "منحة" in visible else "government",
+                tags=[source.get("name", "Official"), "Morocco"],
+            )
+        )
+    return jobs
+
+
 def _parse_generic_official_source(source: dict[str, Any], soup: BeautifulSoup) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
     source_url = source["url"]
@@ -489,12 +619,27 @@ def _parse_generic_official_source(source: dict[str, Any], soup: BeautifulSoup) 
 
 def _parse_source(source: dict[str, Any], soup: BeautifulSoup) -> list[dict[str, Any]]:
     host = urlparse(source["url"]).netloc.lower()
+    parser = str(source.get("parser", "")).lower()
+    if parser == "ofppt":
+        return _parse_ofppt(source, soup)
+    if parser == "mabourse":
+        return _parse_mabourse(source, soup)
+    if parser == "official_links":
+        return _parse_official_links(source, soup)
     if "emploi-public.ma" in host:
         return _parse_emploi_public(source, soup)
     if "anapec.ma" in host:
         return _parse_anapec(source, soup)
+    if "recrutement.ofppt.ma" in host or "ofppt.ma" in host:
+        return _parse_ofppt(source, soup)
+    if "mabourse.enssup.gov.ma" in host:
+        return _parse_mabourse(source, soup)
     if "collectivites-territoriales.gov.ma" in host:
         return _parse_collectivites(source, soup)
+    if source.get("type") in {"scholarship", "official_agency", "government"}:
+        official_jobs = _parse_official_links(source, soup)
+        if official_jobs:
+            return official_jobs
     return _parse_generic_official_source(source, soup)
 
 
