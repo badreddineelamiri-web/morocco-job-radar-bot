@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""Main entry point for Morocco Job Radar Bot.
+
+The production run fetches official Moroccan job sources, skips already
+published jobs, generates a Facebook post plus image, and publishes to the
+configured Facebook Page.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import sys
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).parent / "modules"))
+
+from modules.ai_writer import generate_post
+from modules.facebook_publisher import publish_job
+from modules.government_sources import fetch_government_jobs
+from modules.image_maker import create_job_image
+from modules.job_tracker import (
+    clean_old_jobs,
+    get_published_count,
+    is_job_published,
+    mark_job_published,
+)
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+LOGGER = logging.getLogger("Main")
+
+
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    try:
+        return max(minimum, int(os.getenv(name, str(default))))
+    except ValueError:
+        LOGGER.warning("Invalid %s value; using %d.", name, default)
+        return default
+
+
+def process_job(job: dict[str, Any]) -> bool:
+    """Generate assets and publish one job.
+
+    Returns True only when the job was published, or when DRY_RUN simulates a
+    successful publish. Already-published jobs are skipped.
+    """
+    try:
+        LOGGER.info("Processing job: %s at %s", job.get("title"), job.get("company"))
+
+        if is_job_published(job):
+            LOGGER.info("Job already published, skipping: %s", job.get("title"))
+            return False
+
+        LOGGER.info("Generating AI post...")
+        post_data = generate_post(job)
+
+        LOGGER.info("Creating job image...")
+        image_path = create_job_image(job, post_data)
+
+        LOGGER.info("Publishing to Facebook...")
+        result = publish_job(post_data, image_path)
+
+        if result.get("ok"):
+            LOGGER.info("Successfully published job: %s", job.get("title"))
+            if result.get("dry_run"):
+                LOGGER.info("DRY_RUN result not saved to published jobs tracker.")
+            else:
+                mark_job_published(job, result)
+            return True
+
+        LOGGER.error("Failed to publish job: %s", result.get("error", "Unknown error"))
+        return False
+    except Exception as exc:
+        LOGGER.error("Error processing job: %s", exc, exc_info=True)
+        return False
+
+
+def main() -> None:
+    """Run one job radar cycle."""
+    LOGGER.info("Starting Morocco Job Radar Bot...")
+
+    cleaned = clean_old_jobs(days_to_keep=30)
+    if cleaned:
+        LOGGER.info("Cleaned %d old jobs from tracker", cleaned)
+
+    max_jobs = _env_int("MAX_JOBS_PER_RUN", default=3)
+    LOGGER.info("Fetching official government and agency job sources...")
+    jobs = fetch_government_jobs()[:max_jobs]
+
+    if not jobs:
+        LOGGER.warning("No jobs found. Exiting without publishing.")
+        return
+
+    LOGGER.info("Found %d jobs to process", len(jobs))
+
+    published_count = 0
+    for index, job in enumerate(jobs, 1):
+        LOGGER.info("")
+        LOGGER.info("%s", "=" * 50)
+        LOGGER.info("Processing job %d/%d", index, len(jobs))
+        LOGGER.info("%s", "=" * 50)
+
+        if process_job(job):
+            published_count += 1
+
+    LOGGER.info("")
+    LOGGER.info("Bot run completed!")
+    LOGGER.info("Published: %d/%d jobs", published_count, len(jobs))
+    LOGGER.info("Total published jobs in tracker: %d", get_published_count())
+
+
+if __name__ == "__main__":
+    if os.getenv("DRY_RUN", "").lower() in {"1", "true", "yes"}:
+        LOGGER.info("DRY RUN mode enabled - no actual publishing")
+
+    main()

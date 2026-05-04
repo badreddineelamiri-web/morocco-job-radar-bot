@@ -1,0 +1,66 @@
+[
+  {
+    "name": "data.gov.ma - Emploi public datasets",
+    "type": "open_data",
+    "country": "morocco",
+    "url": "https://data.gov.ma/data/api/3/action/package_search?q=emploi%20public",
+    "category": "official_open_data",
+    "enabled": true
+  },
+  {
+    "name": "Emploi Public - مباريات التوظيف",
+    "type": "government",
+    "country": "morocco",
+    "url": "https://www.emploi-public.ma/ar/قائمة-المباريات",
+    "category": "public_jobs",
+    "enabled": true
+  },
+  {
+    "name": "Emploi Public - Concours de recrutement",
+    "type": "government",
+    "country": "morocco",
+    "url": "https://www.emploi-public.ma/fr/concours-liste",
+    "category": "public_jobs",
+    "enabled": true
+  },
+  {
+    "name": "Emploi Public - المناصب العليا",
+    "type": "government",
+    "country": "morocco",
+    "url": "https://www.emploi-public.ma/fr/emploi-sup-liste",
+    "category": "senior_public_jobs",
+    "enabled": true
+  },
+  {
+    "name": "Emploi Public - امتحانات الكفاءة والمباريات المهنية",
+    "type": "government",
+    "country": "morocco",
+    "url": "https://www.emploi-public.ma/fr/eap-liste",
+    "category": "professional_exams",
+    "enabled": true
+  },
+  {
+    "name": "ANAPEC - عروض الشغل",
+    "type": "official_agency",
+    "country": "morocco",
+    "url": "https://anapec.ma/home-page-o1/chercheur-emploi/offres-demploi/",
+    "category": "private_and_public_jobs",
+    "enabled": true
+  },
+  {
+    "name": "ANAPEC Skills",
+    "type": "official_agency",
+    "country": "morocco",
+    "url": "https://skills.ma/infitah/",
+    "category": "international_and_skills_jobs",
+    "enabled": true
+  },
+  {
+    "name": "Collectivités Territoriales - Concours",
+    "type": "government",
+    "country": "morocco",
+    "url": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours",
+    "category": "local_government_jobs",
+    "enabled": true
+  }
+]
