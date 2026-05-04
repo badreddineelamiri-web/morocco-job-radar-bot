@@ -100,6 +100,12 @@ def mark_job_published(job: dict[str, Any], post_result: dict[str, Any] | None =
     published[job_hash] = {
         "title": job.get("title"),
         "company": job.get("company"),
+        "source": job.get("source"),
+        "deadline": job.get("deadline"),
+        "exam_date": job.get("exam_date"),
+        "published_at_source": job.get("published_at"),
+        "announcement_url": job.get("announcement_url") or job.get("url"),
+        "application_url": job.get("application_url"),
         "published_at": datetime.datetime.now().isoformat(),
         "post_result": post_result or {},
     }

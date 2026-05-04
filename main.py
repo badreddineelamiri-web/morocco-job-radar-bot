@@ -90,24 +90,30 @@ def main() -> None:
 
     max_jobs = _env_int("MAX_JOBS_PER_RUN", default=3)
     LOGGER.info("Fetching official government and agency job sources...")
-    jobs = fetch_government_jobs()[:max_jobs]
+    jobs = fetch_government_jobs()
 
     if not jobs:
         LOGGER.warning("No jobs found. Exiting without publishing.")
         return
 
-    LOGGER.info("Found %d jobs to process", len(jobs))
+    LOGGER.info("Found %d jobs to scan; target is %d new publish(es).", len(jobs), max_jobs)
 
     published_count = 0
     failed_count = 0
     skipped_count = 0
+    processed_count = 0
     for index, job in enumerate(jobs, 1):
+        if published_count >= max_jobs:
+            LOGGER.info("Publish target reached; stopping scan.")
+            break
+
         LOGGER.info("")
         LOGGER.info("%s", "=" * 50)
-        LOGGER.info("Processing job %d/%d", index, len(jobs))
+        LOGGER.info("Processing candidate job %d/%d", index, len(jobs))
         LOGGER.info("%s", "=" * 50)
 
         status = process_job(job)
+        processed_count += 1
         if status == "published":
             published_count += 1
         elif status == "failed":
@@ -117,7 +123,8 @@ def main() -> None:
 
     LOGGER.info("")
     LOGGER.info("Bot run completed!")
-    LOGGER.info("Published: %d/%d jobs", published_count, len(jobs))
+    LOGGER.info("Scanned: %d/%d candidate job(s)", processed_count, len(jobs))
+    LOGGER.info("Published: %d/%d target job(s)", published_count, max_jobs)
     LOGGER.info("Skipped: %d job(s)", skipped_count)
     LOGGER.info("Failed: %d job(s)", failed_count)
     LOGGER.info("Total published jobs in tracker: %d", get_published_count())

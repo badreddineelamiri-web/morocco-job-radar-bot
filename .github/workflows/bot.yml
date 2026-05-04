@@ -17,7 +17,7 @@ concurrency:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -38,6 +38,7 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           DRY_RUN: ${{ secrets.DRY_RUN }}
+          REQUEST_TIMEOUT: 12
           GOV_MAX_ITEMS_PER_SOURCE: 4
           MAX_JOBS_PER_RUN: 4
 

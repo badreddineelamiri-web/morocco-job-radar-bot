@@ -80,9 +80,17 @@ def _why_this_job(job: dict[str, Any]) -> str:
 
 def _first_comment(job: dict[str, Any]) -> str:
     link = _application_link(job)
+    details = []
+    if job.get("deadline"):
+        details.append(f"آخر أجل: {job['deadline']}")
+    if job.get("exam_date"):
+        details.append(f"تاريخ المباراة: {job['exam_date']}")
+    prefix = "\n".join(details)
     if link:
-        return f"رابط التقديم أو الإعلان الرسمي:\n{link}"
-    return "رابط التقديم أو الإعلان الرسمي: غير مذكور في المصدر."
+        link_block = f"رابط التقديم أو الإعلان الرسمي:\n{link}"
+        return f"{prefix}\n\n{link_block}".strip()
+    missing_link = "رابط التقديم أو الإعلان الرسمي: غير مذكور في المصدر."
+    return f"{prefix}\n\n{missing_link}".strip()
 
 
 def fallback_government_post(job: dict[str, Any]) -> dict[str, Any]:
@@ -92,6 +100,7 @@ def fallback_government_post(job: dict[str, Any]) -> dict[str, Any]:
     location = _value_or_missing(job.get("location"))
     positions = _value_or_missing(job.get("positions"))
     deadline = _value_or_missing(job.get("deadline"))
+    exam_date = _value_or_missing(job.get("exam_date"))
 
     facebook_post = (
         "فرصة عمل جديدة في المغرب\n\n"
@@ -100,7 +109,8 @@ def fallback_government_post(job: dict[str, Any]) -> dict[str, Any]:
         f"- الشركة / المؤسسة: {company}\n"
         f"- المدينة: {location}\n"
         f"- عدد المناصب: {positions}\n"
-        f"- آخر أجل: {deadline}\n\n"
+        f"- آخر أجل: {deadline}\n"
+        f"- تاريخ المباراة: {exam_date}\n\n"
         "المتطلبات الأساسية:\n"
         f"{_requirements_block(job)}\n\n"
         "لماذا هذه الفرصة؟\n"
@@ -189,6 +199,9 @@ def _validate_ai_response(data: dict[str, Any], job: dict[str, Any]) -> dict[str
     data["facebook_post"] = _normalize_whitespace(str(data.get("facebook_post") or fallback["facebook_post"]))
     data["first_comment"] = _normalize_whitespace(str(data.get("first_comment") or _first_comment(job)))
     data["image_title"] = str(data.get("image_title") or fallback["image_title"]).strip()[:90]
+    for label, value in (("آخر أجل", job.get("deadline")), ("تاريخ المباراة", job.get("exam_date"))):
+        if value and str(value) not in data["first_comment"]:
+            data["first_comment"] = f"{label}: {value}\n{data['first_comment']}".strip()
     if link and link not in data["first_comment"]:
         data["first_comment"] = f"{data['first_comment']}\n{link}".strip()
     return data

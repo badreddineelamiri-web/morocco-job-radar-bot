@@ -8,6 +8,7 @@ the issue, skips weak entries, and continues with the next source.
 from __future__ import annotations
 
 import hashlib
+import datetime
 import json
 import logging
 import os
@@ -18,16 +19,38 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from requests import Session
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 LOGGER = logging.getLogger(__name__)
 CONFIG_PATH = Path("config/government_sources.json")
-REQUEST_TIMEOUT = 20
+REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "12"))
 USER_AGENT = (
     "MoroccoJobRadarBot/1.0 "
     "(official-job-monitor; contact: configure-your-email@example.com)"
 )
 OPEN_DATA_PACKAGE_SEARCH_URL = "https://data.gov.ma/data/api/3/action/package_search?q=emploi%20public"
+
+
+def _session() -> Session:
+    session = requests.Session()
+    retry = Retry(
+        total=2,
+        connect=2,
+        read=1,
+        backoff_factor=0.8,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=("GET",),
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+
+
+HTTP = _session()
 
 
 def _clean_text(value: str | None) -> str:
@@ -50,35 +73,64 @@ def _load_sources() -> list[dict[str, Any]]:
         return []
 
 
+def _candidate_urls(url: str) -> list[str]:
+    """Return fetch candidates for official sites with fragile HTTPS setups."""
+    candidates = [url]
+    parsed = urlparse(url)
+    if parsed.scheme == "https":
+        http_url = parsed._replace(scheme="http").geturl()
+        if http_url not in candidates:
+            candidates.append(http_url)
+    return candidates
+
+
+def _request_get(url: str) -> requests.Response | None:
+    headers = {"User-Agent": USER_AGENT, "Accept-Language": "ar,fr;q=0.9,en;q=0.7"}
+    last_error: Exception | None = None
+    for candidate in _candidate_urls(url):
+        for verify in (True, False):
+            try:
+                response = HTTP.get(
+                    candidate,
+                    headers=headers,
+                    timeout=REQUEST_TIMEOUT,
+                    allow_redirects=True,
+                    verify=verify,
+                )
+                response.raise_for_status()
+                return response
+            except requests.exceptions.SSLError as exc:
+                last_error = exc
+                if verify:
+                    LOGGER.warning(
+                        "HTTPS certificate issue for %s; retrying without strict verification.",
+                        candidate,
+                    )
+                    continue
+                break
+            except requests.RequestException as exc:
+                last_error = exc
+                break
+    LOGGER.error("Official source failed, skipping %s: %s", url, last_error)
+    return None
+
+
 def _get_soup(url: str) -> BeautifulSoup | None:
-    try:
-        response = requests.get(
-            url,
-            headers={"User-Agent": USER_AGENT, "Accept-Language": "ar,fr;q=0.9,en;q=0.7"},
-            timeout=REQUEST_TIMEOUT,
-        )
-        response.raise_for_status()
-        if response.encoding is None:
-            response.encoding = response.apparent_encoding
-        return BeautifulSoup(response.text, "html.parser")
-    except requests.RequestException as exc:
-        LOGGER.error("Official source failed, skipping %s: %s", url, exc)
+    response = _request_get(url)
+    if response is None:
         return None
+    if response.encoding is None:
+        response.encoding = response.apparent_encoding
+    return BeautifulSoup(response.text, "html.parser")
 
 
 def _get_json(url: str) -> dict[str, Any] | None:
     try:
-        response = requests.get(
-            url,
-            headers={"User-Agent": USER_AGENT, "Accept-Language": "ar,fr;q=0.9,en;q=0.7"},
-            timeout=REQUEST_TIMEOUT,
-        )
-        response.raise_for_status()
+        response = _request_get(url)
+        if response is None:
+            return None
         data = response.json()
         return data if isinstance(data, dict) else None
-    except requests.RequestException as exc:
-        LOGGER.error("Official JSON source failed, skipping %s: %s", url, exc)
-        return None
     except ValueError as exc:
         LOGGER.error("Official JSON source returned invalid JSON, skipping %s: %s", url, exc)
         return None
@@ -207,6 +259,7 @@ def _normalize_government_job(
         "description": description,
         "url": job_url,
         "published_at": "",
+        "fetched_at": datetime.datetime.now().isoformat(timespec="seconds"),
         "deadline": deadline,
         "exam_date": exam_date,
         "positions": positions,
