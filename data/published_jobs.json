@@ -241,5 +241,89 @@
         "id": "961314469596952_1550013003124502"
       }
     }
+  },
+  "5f544c1eb742b248b666": {
+    "title": "Avis d'emplois supérieurs Directeur de l'Ecole Mohammadia des Ingénieurs, Rabat",
+    "company": "Ministère de l’Enseignement supérieur, de la recherche scientifique et de l’innovation",
+    "source": "emploi-public",
+    "deadline": "26 Juin 2026 - 16:30",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/emploi-sup/details/e1054489-8a0a-4d64-92ab-55a9dbb52ac5",
+    "application_url": "",
+    "published_at": "2026-05-04T23:13:48.937391",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961351899593209",
+        "post_id": "103026497833721_961351909593208"
+      },
+      "comment": {
+        "id": "961351899593209_1999466913990149"
+      }
+    }
+  },
+  "10fa5c629e16278a12ed": {
+    "title": "Offres d'emploi",
+    "company": "OFPPT - Offres d'emploi",
+    "source": "ofppt.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.ofppt.ma/fr/offres-d-emploi",
+    "application_url": "",
+    "published_at": "2026-05-04T23:14:00.050321",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961352006259865",
+        "post_id": "103026497833721_961352022926530"
+      },
+      "comment": {
+        "id": "961352006259865_2434766433657919"
+      }
+    }
+  },
+  "5b477525f2200aeb3122": {
+    "title": "Informations",
+    "company": "AMCI - Coopération et bourses",
+    "source": "amci.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.amci.ma/",
+    "application_url": "",
+    "published_at": "2026-05-04T23:14:11.024107",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961352119593187",
+        "post_id": "103026497833721_961352129593186"
+      },
+      "comment": {
+        "id": "961352119593187_1655670158989581"
+      }
+    }
+  },
+  "f1c7c884eb196f1ee97a": {
+    "title": "Liste des candidats éligibl...",
+    "company": "ONDA - Recrutement",
+    "source": "onda.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.onda.ma/Je-découvre-ONDA/Ressources-humaines/Recrutement-2025/Liste-des-candidats-éligibles-pour-passer-l’épreuve-orale2",
+    "application_url": "",
+    "published_at": "2026-05-04T23:14:23.992434",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961352246259841",
+        "post_id": "103026497833721_961352272926505"
+      },
+      "comment": {
+        "id": "961352246259841_1378870697620708"
+      }
+    }
   }
 }
