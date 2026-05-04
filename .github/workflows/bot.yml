@@ -2,9 +2,9 @@ name: Morocco Job Radar Bot
 
 on:
   schedule:
-    # Run around the clock. GitHub Actions schedules are not truly continuous,
-    # so hourly runs are the safest practical 24/24 setup.
-    - cron: '0 * * * *'
+    # Run forever from GitHub Actions while staying under the 2,000 min/month free budget.
+    # 12 runs/day * 31 days * 5 min max = 1,860 minutes/month worst case.
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
 permissions:
@@ -17,7 +17,7 @@ concurrency:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
