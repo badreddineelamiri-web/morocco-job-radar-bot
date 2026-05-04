@@ -562,10 +562,24 @@ def _parse_official_links(source: dict[str, Any], soup: BeautifulSoup) -> list[d
         ]
 
     seen: set[str] = set()
+    excluded_keywords = (
+        "appel d'offre",
+        "appel d’offres",
+        "appels d'offres",
+        "appels d’offres",
+        "marchés publics",
+        "marches publics",
+        "plan du site",
+        "contact",
+        "newsletter",
+        "mentions légales",
+    )
     for link_node in soup.find_all("a", href=True)[:180]:
         title = _clean_text(link_node.get_text(" ", strip=True))
         url = urljoin(source_url, str(link_node["href"]))
         visible = f"{title} {url}".lower()
+        if any(keyword in visible for keyword in excluded_keywords):
+            continue
         if len(title) < 12 or not any(keyword in visible for keyword in include_keywords):
             continue
         if url in seen:

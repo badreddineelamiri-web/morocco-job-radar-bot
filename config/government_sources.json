@@ -98,7 +98,7 @@
     "url": "https://www.enssup.gov.ma/",
     "category": "scholarships_and_training",
     "parser": "official_links",
-    "keywords": ["bourse", "bours", "candidature", "formation", "doctorat", "master", "concours", "appel"],
+    "keywords": ["bourse", "bours", "candidature", "formation", "doctorat", "master", "concours", "appel à candidature"],
     "enabled": true
   },
   {
@@ -108,7 +108,7 @@
     "url": "https://www.amci.ma/",
     "category": "scholarships_and_training",
     "parser": "official_links",
-    "keywords": ["bourse", "bours", "candidature", "formation", "programme", "appel"],
+    "keywords": ["bourse", "bours", "candidature", "formation", "programme", "appel à candidature"],
     "enabled": true
   },
   {
