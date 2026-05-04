@@ -157,5 +157,89 @@
         "id": "961308276264238_959555880110468"
       }
     }
+  },
+  "67d8798d8c76bdd21bda": {
+    "title": "Avis d'emplois supérieurs Doyen de la Faculté de Médecine et de Pharmacie, Rabat",
+    "company": "Ministère de l’Enseignement supérieur, de la recherche scientifique et de l’innovation",
+    "source": "emploi-public",
+    "deadline": "26 Juin 2026 - 16:30",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/emploi-sup/details/83256c4b-36f7-461e-8579-7dbec3b6aae0",
+    "application_url": "",
+    "published_at": "2026-05-04T21:44:12.597352",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961313866263679",
+        "post_id": "103026497833721_961313879597011"
+      },
+      "comment": {
+        "id": "961313866263679_2071660470052523"
+      }
+    }
+  },
+  "5d10e5f2ff82031bb52d": {
+    "title": "Offre de formation",
+    "company": "OFPPT - Offres d'emploi",
+    "source": "ofppt.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.ofppt.ma/fr/nos-formations",
+    "application_url": "",
+    "published_at": "2026-05-04T21:44:24.607163",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961314006263665",
+        "post_id": "103026497833721_961314019596997"
+      },
+      "comment": {
+        "id": "961314006263665_1294871492071922"
+      }
+    }
+  },
+  "c44b4612f163f2514e30": {
+    "title": "Appels d'offres",
+    "company": "AMCI - Coopération et bourses",
+    "source": "amci.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.amci.ma/appel-offre",
+    "application_url": "",
+    "published_at": "2026-05-04T21:44:45.527127",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961314229596976",
+        "post_id": "103026497833721_961314246263641"
+      },
+      "comment": {
+        "id": "961314229596976_1355169786426894"
+      }
+    }
+  },
+  "5864adf30677beb02eed": {
+    "title": "Recrutement 2025",
+    "company": "ONDA - Recrutement",
+    "source": "onda.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.onda.ma/Je-découvre-ONDA/Ressources-humaines/Recrutement-2025",
+    "application_url": "",
+    "published_at": "2026-05-04T21:45:00.566301",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961314469596952",
+        "post_id": "103026497833721_961314489596950"
+      },
+      "comment": {
+        "id": "961314469596952_1550013003124502"
+      }
+    }
   }
 }
