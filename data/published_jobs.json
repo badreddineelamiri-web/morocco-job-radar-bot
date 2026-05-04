@@ -73,5 +73,89 @@
         "id": "961248556270210_1638196270560451"
       }
     }
+  },
+  "eb1f9325793634f8fefc": {
+    "title": "Avis de concours de recrutement de Technicien de 4ème grade - Echelle 8",
+    "company": "Ministère de l’Inclusion économique, de la Petite entreprise, de l’Emploi et des Compétences",
+    "source": "emploi-public",
+    "deadline": "15 Mai 2026",
+    "exam_date": "24 Mai 2026",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/concours/details/32b7cc99-f3af-4357-9d89-4fb59b5c10de",
+    "application_url": "",
+    "published_at": "2026-05-04T21:30:41.437081",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961307646264301",
+        "post_id": "103026497833721_961307659597633"
+      },
+      "comment": {
+        "id": "961307646264301_1709984846663682"
+      }
+    }
+  },
+  "47241c5a010ec83f9173": {
+    "title": "Avis de concours de recrutement de Technicien de 3ème grade - Echelle 9",
+    "company": "Ministère de l’Inclusion économique, de la Petite entreprise, de l’Emploi et des Compétences",
+    "source": "emploi-public",
+    "deadline": "15 Mai 2026",
+    "exam_date": "24 Mai 2026",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/concours/details/b310f4f5-c754-4f5d-83c7-cf1bbd3a963e",
+    "application_url": "",
+    "published_at": "2026-05-04T21:30:55.597307",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961307786264287",
+        "post_id": "103026497833721_961307806264285"
+      },
+      "comment": {
+        "id": "961307786264287_1306399244753752"
+      }
+    }
+  },
+  "ac15aa5bd6beafe4b129": {
+    "title": "Avis de concours de recrutement de Architecte 1er grade - Echelle 11",
+    "company": "Ministère de l’Inclusion économique, de la Petite entreprise, de l’Emploi et des Compétences",
+    "source": "emploi-public",
+    "deadline": "15 Mai 2026",
+    "exam_date": "24 Mai 2026",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/concours/details/cb47062f-54eb-49dd-b158-80dd9cb43408",
+    "application_url": "",
+    "published_at": "2026-05-04T21:31:08.605764",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961307972930935",
+        "post_id": "103026497833721_961308002930932"
+      },
+      "comment": {
+        "id": "961307972930935_988678387048090"
+      }
+    }
+  },
+  "bec1cacaa21afaa189b4": {
+    "title": "Avis d'emplois supérieurs Directeur de l'Agence du bassin Hydraulique à Souss Massa",
+    "company": "Ministère de l’Equipement et de l’Eau",
+    "source": "emploi-public",
+    "deadline": "14 Mai 2026",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/emploi-sup/details/b93e0027-1954-4712-8bb1-c6c3715e916c",
+    "application_url": "",
+    "published_at": "2026-05-04T21:31:20.972350",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961308276264238",
+        "post_id": "103026497833721_961308296264236"
+      },
+      "comment": {
+        "id": "961308276264238_959555880110468"
+      }
+    }
   }
 }
