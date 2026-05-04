@@ -39,43 +39,29 @@ def _normalize_text(value: Any) -> str:
 
 
 def _normalize_publish_text(post_data: dict[str, Any]) -> tuple[str, str]:
-    """Normalize caption and first comment text.
-    
-    Ensures the first comment contains the job application link.
-    """
+    """Normalize caption and first comment text before publishing."""
     caption = _normalize_text(post_data.get("facebook_post"))
     first_comment = _normalize_text(post_data.get("first_comment"))
-    
-    # Get all possible links
     source_link = _normalize_text(
-        post_data.get("source_url") or 
-        post_data.get("official_url") or 
-        post_data.get("application_url") or
-        post_data.get("url") or
-        post_data.get("announcement_url")
+        post_data.get("source_url")
+        or post_data.get("official_url")
+        or post_data.get("application_url")
+        or post_data.get("url")
+        or post_data.get("announcement_url")
     )
 
-    # Default caption if empty
     if not caption:
-        caption = "📢 فرصة عمل جديدة في المغرب! 🇲🇦\n\n🔗 التفاصيل أو رابط التقديم في أول تعليق ⬇️"
-    
-    # Ensure first comment has the link
+        caption = "فرصة عمل جديدة في المغرب\n\nالتفاصيل ورابط التقديم الرسمي موجودة في أول تعليق."
+
     if source_link:
         if not first_comment:
-            first_comment = f"🔗 رابط التقديم أو الإعلان الرسمي:\n{source_link}"
+            first_comment = f"رابط التقديم أو الإعلان الرسمي:\n{source_link}"
         elif source_link not in first_comment:
-            # Check if first comment already mentions link
-            if "رابط" not in first_comment and "link" not in first_comment.lower():
-                first_comment = f"{first_comment}\n\n🔗 رابط التقديم أو الإعلان الرسمي:\n{source_link}"
-            else:
-                # Link might be there but not complete, append it
-                if source_link not in first_comment:
-                    first_comment = f"{first_comment}\n{source_link}"
-    
-    # If no link available, mention it in first comment
+            first_comment = f"{first_comment}\n\nرابط التقديم أو الإعلان الرسمي:\n{source_link}"
+
     if not source_link and not first_comment:
-        first_comment = "🔗 رابط التقديم أو الإعلان الرسمي: غير مذكور في الإعلان"
-    
+        first_comment = "رابط التقديم أو الإعلان الرسمي: غير مذكور في المصدر."
+
     return caption, first_comment
 
 

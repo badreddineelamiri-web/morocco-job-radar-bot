@@ -2,7 +2,9 @@ name: Morocco Job Radar Bot
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    # Run around the clock. GitHub Actions schedules are not truly continuous,
+    # so hourly runs are the safest practical 24/24 setup.
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -36,8 +38,8 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           DRY_RUN: ${{ secrets.DRY_RUN }}
-          GOV_MAX_ITEMS_PER_SOURCE: 2
-          MAX_JOBS_PER_RUN: 3
+          GOV_MAX_ITEMS_PER_SOURCE: 4
+          MAX_JOBS_PER_RUN: 4
 
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           AI_FINAL_PROVIDER_ORDER: ${{ secrets.AI_FINAL_PROVIDER_ORDER }}

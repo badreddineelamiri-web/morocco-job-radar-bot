@@ -1,34 +1,36 @@
 #!/usr/bin/env python3
-"""Test script to verify the system works."""
+"""Smoke test for Morocco Job Radar Bot components."""
 
-import sys
 from pathlib import Path
+import os
+import sys
 
-# Add modules to path - use current directory since we're running from correct location
 sys.path.insert(0, str(Path.cwd() / "modules"))
+os.environ.setdefault("DRY_RUN", "true")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 print("Testing Morocco Job Radar Bot Components...")
 print("=" * 50)
 
-# Test 1: Check if we can import modules
 try:
     print("\n1. Testing imports...")
-    from modules.ai_writer import generate_post, fallback_post
-    from modules.image_maker import create_job_image
+    from modules.ai_writer import fallback_post
     from modules.facebook_publisher import publish_job
-    from modules.job_tracker import is_job_published, get_published_count
-    print("   ✓ All modules imported successfully")
-except Exception as e:
-    print(f"   ✗ Import failed: {e}")
+    from modules.image_maker import create_job_image
+    from modules.job_tracker import get_published_count, is_job_published
+
+    print("   OK: all modules imported successfully")
+except Exception as exc:
+    print(f"   FAILED: import error: {exc}")
     sys.exit(1)
 
-# Test 2: Create a sample job
-print("\n2. Creating sample job...")
+print("\n2. Creating sample Arabic job...")
 sample_job = {
     "title": "مهندس برمجيات",
     "company": "شركة التقنية المغربية",
     "location": "الدار البيضاء",
-    "description": "نبحث عن مهندس برمجيات ذو خبرة في تطوير الويب",
+    "description": "نبحث عن مهندس برمجيات لديه خبرة في تطوير تطبيقات الويب.",
     "application_url": "https://example.com/job1",
     "job_type": "private",
     "remote": False,
@@ -38,44 +40,29 @@ print(f"   Job: {sample_job['title']}")
 print(f"   Company: {sample_job['company']}")
 print(f"   Location: {sample_job['location']}")
 
-# Test 3: Check if job was already published
-print("\n3. Checking if job was already published...")
+print("\n3. Checking tracker...")
 if is_job_published(sample_job):
-    print("   ⚠ Job was already published, skipping...")
+    print("   SKIP: job was already published")
 else:
-    print("   ✓ Job is new, can be published")
+    print("   OK: job is new")
 
-# Test 4: Test AI post generation (with fallback)
 print("\n4. Testing post generation...")
-try:
-    post_data = fallback_post(sample_job)  # Use fallback to avoid API calls
-    print("   ✓ Post generated successfully")
-    print(f"   Post preview: {post_data['facebook_post'][:100]}...")
-    print(f"   First comment: {post_data['first_comment'][:100]}...")
-except Exception as e:
-    print(f"   ✗ Post generation failed: {e}")
+post_data = fallback_post(sample_job)
+print("   OK: post generated")
+print(f"   Image title: {post_data['image_title']}")
+print(f"   First comment: {post_data['first_comment']}")
 
-# Test 5: Test image creation
 print("\n5. Testing image creation...")
-try:
-    # Make sure job dictionary is available
-    test_job = sample_job.copy()
-    test_post_data = post_data.copy()
-    image_path = create_job_image(test_job, test_post_data)
-    print(f"   ✓ Image created: {image_path}")
-    print(f"   Image exists: {image_path.exists()}")
-except Exception as e:
-    print(f"   ✗ Image creation failed: {e}")
-    import traceback
-    traceback.print_exc()
+image_path = create_job_image(sample_job.copy(), post_data.copy())
+print(f"   OK: image created at {image_path}")
+print(f"   Exists: {image_path.exists()}")
 
-# Test 6: Check published jobs count
-print("\n6. Checking published jobs count...")
-count = get_published_count()
-print(f"   Total published jobs: {count}")
+print("\n6. Testing dry-run publish payload...")
+result = publish_job(post_data, image_path)
+print(f"   Publish result ok: {result.get('ok')}")
+
+print("\n7. Published jobs count...")
+print(f"   Total published jobs: {get_published_count()}")
 
 print("\n" + "=" * 50)
-print("✅ System test completed!")
-print("\nTo run the full bot:")
-print("  - Set DRY_RUN=true for testing")
-print("  - Run: python main.py")
+print("System smoke test completed.")
