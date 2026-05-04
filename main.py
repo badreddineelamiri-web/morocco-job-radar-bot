@@ -44,18 +44,17 @@ def _env_int(name: str, default: int, minimum: int = 1) -> int:
         return default
 
 
-def process_job(job: dict[str, Any]) -> bool:
+def process_job(job: dict[str, Any]) -> str:
     """Generate assets and publish one job.
 
-    Returns True only when the job was published, or when DRY_RUN simulates a
-    successful publish. Already-published jobs are skipped.
+    Returns a status string: published, skipped, or failed.
     """
     try:
         LOGGER.info("Processing job: %s at %s", job.get("title"), job.get("company"))
 
         if is_job_published(job):
             LOGGER.info("Job already published, skipping: %s", job.get("title"))
-            return False
+            return "skipped"
 
         LOGGER.info("Generating AI post...")
         post_data = generate_post(job)
@@ -72,13 +71,13 @@ def process_job(job: dict[str, Any]) -> bool:
                 LOGGER.info("DRY_RUN result not saved to published jobs tracker.")
             else:
                 mark_job_published(job, result)
-            return True
+            return "published"
 
         LOGGER.error("Failed to publish job: %s", result.get("error", "Unknown error"))
-        return False
+        return "failed"
     except Exception as exc:
         LOGGER.error("Error processing job: %s", exc, exc_info=True)
-        return False
+        return "failed"
 
 
 def main() -> None:
@@ -100,19 +99,31 @@ def main() -> None:
     LOGGER.info("Found %d jobs to process", len(jobs))
 
     published_count = 0
+    failed_count = 0
+    skipped_count = 0
     for index, job in enumerate(jobs, 1):
         LOGGER.info("")
         LOGGER.info("%s", "=" * 50)
         LOGGER.info("Processing job %d/%d", index, len(jobs))
         LOGGER.info("%s", "=" * 50)
 
-        if process_job(job):
+        status = process_job(job)
+        if status == "published":
             published_count += 1
+        elif status == "failed":
+            failed_count += 1
+        else:
+            skipped_count += 1
 
     LOGGER.info("")
     LOGGER.info("Bot run completed!")
     LOGGER.info("Published: %d/%d jobs", published_count, len(jobs))
+    LOGGER.info("Skipped: %d job(s)", skipped_count)
+    LOGGER.info("Failed: %d job(s)", failed_count)
     LOGGER.info("Total published jobs in tracker: %d", get_published_count())
+
+    if failed_count and os.getenv("DRY_RUN", "").lower() not in {"1", "true", "yes"}:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
