@@ -1,1 +1,47 @@
-{}
+{
+  "e39cb725268d5a580b87": {
+    "title": "مباراة لتوظيف مساعد تقني من الدرجة الثانية",
+    "company": "وزارة الإدماج الاقتصادي والمقاولة الصغرى والتشغيل والكفاءات",
+    "published_at": "2026-05-04T16:36:38.931154",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961156706279395",
+        "post_id": "103026497833721_961156729612726"
+      },
+      "comment": {
+        "id": "961156706279395_1755930978706230"
+      }
+    }
+  },
+  "da45315ddc0cbd98c8af": {
+    "title": "مباراة لتوظيف تقني من الدرجة الرابعة - سلم 8",
+    "company": "وزارة الإدماج الاقتصادي والمقاولة الصغرى والتشغيل والكفاءات",
+    "published_at": "2026-05-04T16:37:00.785214",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961156956279370",
+        "post_id": "103026497833721_961156976279368"
+      },
+      "comment": {
+        "id": "961156956279370_1880876275939335"
+      }
+    }
+  },
+  "bc56fdb2ee3e75f6592e": {
+    "title": "Avis de concours de recrutement de Adjoint technique 2ème grade",
+    "company": "Ministère de l’Inclusion économique, de la Petite entreprise, de l’Emploi et des Compétences",
+    "published_at": "2026-05-04T16:37:20.964153",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961157226279343",
+        "post_id": "103026497833721_961157246279341"
+      },
+      "comment": {
+        "id": "961157226279343_3405566369616351"
+      }
+    }
+  }
+}
