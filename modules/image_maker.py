@@ -47,13 +47,21 @@ class Box:
         return self.y + self.h
 
 
-TITLE_BOX = Box(82, 220, 916, 340)
-DETAIL_BOXES = [
-    Box(82, 650, 290, 150),
-    Box(395, 650, 290, 150),
-    Box(708, 650, 290, 150),
+TITLE_BOX = Box(92, 190, 896, 150)
+ORGANIZER_BOX = Box(92, 360, 896, 82)
+HIGHLIGHT_BOXES = [
+    Box(92, 468, 280, 120),
+    Box(400, 468, 280, 120),
+    Box(708, 468, 280, 120),
 ]
-FOOTER_BOX = Box(82, 850, 916, 105)
+INFO_GRID_BOXES = [
+    Box(92, 616, 432, 78),
+    Box(556, 616, 432, 78),
+    Box(92, 708, 432, 78),
+    Box(556, 708, 432, 78),
+    Box(92, 800, 432, 78),
+    Box(556, 800, 432, 78),
+]
 
 
 def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -142,7 +150,22 @@ def _draw_rtl(
 
 def _value_or_missing(value: Any) -> str:
     text = str(value).strip() if value else ""
-    return text or "غير مذكور"
+    return text or "غير محدد في الإعلان"
+
+
+def _first_value(job: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = job.get(key)
+        if value:
+            return str(value).strip()
+    return ""
+
+
+def _clean_location(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text or text.lower() in {"morocco", "maroc", "المغرب"}:
+        return "على الصعيد الوطني"
+    return text
 
 
 def _safe_filename(value: str) -> str:
@@ -266,60 +289,99 @@ def _fit_font_for_box(
     return _font(minimum, bold=True)
 
 
+def _draw_soft_shadow(draw: ImageDraw.ImageDraw, box: Box, radius: int = 22) -> None:
+    for offset, color in ((8, "#d9dee866"), (4, "#edf0f655")):
+        draw.rounded_rectangle(
+            (box.x + offset, box.y + offset, box.right + offset, box.bottom + offset),
+            radius=radius,
+            fill=color,
+        )
+
+
+def _draw_moroccan_frame(draw: ImageDraw.ImageDraw) -> None:
+    draw.rectangle((0, 0, CANVAS_SIZE, CANVAS_SIZE), fill="#071422")
+    draw.rectangle((0, 972, 540, CANVAS_SIZE), fill="#b71822")
+    draw.rectangle((540, 972, CANVAS_SIZE, CANVAS_SIZE), fill="#08743f")
+    draw.polygon([(0, 972), (0, 1080), (420, 1080), (250, 1020)], fill="#cf1f28")
+    draw.polygon([(1080, 972), (1080, 1080), (660, 1080), (830, 1020)], fill="#0a8950")
+    draw.arc((-120, 850, 540, 1240), 188, 334, fill="#e6b25c", width=7)
+    draw.arc((540, 850, 1200, 1240), 206, 352, fill="#e6b25c", width=7)
+    for x in (18, 1040):
+        draw.line((x, 22, x, 160), fill="#b9863f", width=2)
+        draw.line((x, 22, x + (-120 if x > 500 else 120), 22), fill="#b9863f", width=2)
+    for x, y in ((64, 52), (1016, 52), (540, 1028)):
+        draw.regular_polygon((x, y, 18), n_sides=5, rotation=-18, outline="#08743f", width=2)
+
+
 def _base_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
     if TEMPLATE_PATH.exists():
         image = Image.open(TEMPLATE_PATH).convert("RGBA")
         if image.size != (CANVAS_SIZE, CANVAS_SIZE):
             image = image.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
     else:
-        image = Image.new("RGBA", (CANVAS_SIZE, CANVAS_SIZE), "#f7f8fb")
+        image = Image.new("RGBA", (CANVAS_SIZE, CANVAS_SIZE), "#071422")
         draw = ImageDraw.Draw(image)
-        draw.rounded_rectangle((50, 70, 1030, 1010), radius=36, fill="#ffffff")
+        _draw_moroccan_frame(draw)
+        draw.rounded_rectangle((54, 118, 1026, 1000), radius=42, fill="#ffffff", outline="#e6b25c", width=3)
     return image, ImageDraw.Draw(image)
 
 
 def _detail_items(job: dict[str, Any]) -> list[tuple[str, str]]:
-    if job.get("deadline") or job.get("job_type") in {"government", "scholarship"}:
-        final_label = "آخر أجل"
-        final_value = job.get("deadline")
-    else:
-        final_label = "نمط العمل"
-        final_value = "عن بعد" if job.get("remote") else "حسب الإعلان"
+    employment_type = _first_value(job, "employment_type", "recruitment_type") or (
+        "توظيف نظامي" if _is_government_job(job) else ""
+    )
+    deposit_type = _first_value(job, "deposit_type", "submission_type")
+    if not deposit_type and _first_value(job, "application_url", "announcement_url", "url"):
+        deposit_type = "الإيداع الإلكتروني أو حسب الإعلان"
+
+    candidates = [
+        ("التخصص", _first_value(job, "specialty", "speciality", "field")),
+        ("الدرجة", _first_value(job, "grade", "degree")),
+        ("نوع التوظيف", employment_type),
+        ("نوع الإيداع", deposit_type),
+        ("مكان العمل", _clean_location(job.get("location"))),
+        ("تاريخ النشر", _first_value(job, "published_at", "publication_date", "publish_date")),
+        ("المرجع", _first_value(job, "reference")),
+    ]
+    return [(label, value) for label, value in candidates if value][:6]
+
+
+def _highlight_items(job: dict[str, Any]) -> list[tuple[str, str]]:
     return [
-        ("المؤسسة", _value_or_missing(job.get("company"))),
-        ("المدينة", _value_or_missing(job.get("location"))),
-        (final_label, _value_or_missing(final_value)),
+        ("عدد المناصب", _value_or_missing(job.get("positions"))),
+        ("آخر أجل", _value_or_missing(job.get("deadline"))),
+        ("تاريخ المباراة", _value_or_missing(job.get("exam_date"))),
     ]
 
 
+def _category_label(job: dict[str, Any], post_data: dict[str, Any]) -> str:
+    explicit = str(post_data.get("category") or "").strip()
+    if explicit:
+        return explicit
+    if job.get("job_type") == "scholarship":
+        return "منحة أو تكوين"
+    if _is_government_job(job):
+        return "مباراة توظيف"
+    return "فرصة عمل"
+
+
 def _draw_detail_box(draw: ImageDraw.ImageDraw, box: Box, label: str, value: str) -> None:
-    label_font = _font(30, bold=True)
-    value_font = _font(33, bold=True)
-    draw.rounded_rectangle((box.x, box.y, box.right, box.bottom), radius=20, fill="#fffffff4", outline="#e2e2df", width=2)
-    _draw_wrapped_right(draw, label, Box(box.x + 20, box.y + 20, box.w - 40, 38), label_font, "#08743f", max_lines=1)
-    _draw_wrapped_right(draw, value, Box(box.x + 20, box.y + 66, box.w - 40, 72), value_font, "#151b24", max_lines=2)
+    label_font = _font(23, bold=True)
+    value_font = _fit_font_for_box(draw, value, Box(box.x + 22, box.y + 36, box.w - 44, 36), start=25, minimum=18, max_lines=2)
+    _draw_soft_shadow(draw, box, radius=15)
+    draw.rounded_rectangle((box.x, box.y, box.right, box.bottom), radius=15, fill="#ffffff", outline="#e7e2d8", width=2)
+    draw.rounded_rectangle((box.right - 10, box.y + 14, box.right - 4, box.bottom - 14), radius=3, fill="#08743f")
+    _draw_wrapped_right(draw, label, Box(box.x + 22, box.y + 10, box.w - 44, 24), label_font, "#08743f", max_lines=1)
+    _draw_wrapped_right(draw, value, Box(box.x + 22, box.y + 39, box.w - 44, 35), value_font, "#121923", max_lines=2)
 
 
-def _draw_footer(draw: ImageDraw.ImageDraw) -> None:
-    cta_font = _font(44, bold=True)
-    hint_font = _font(28, bold=True)
-    draw.rounded_rectangle((FOOTER_BOX.x, FOOTER_BOX.y, FOOTER_BOX.right, FOOTER_BOX.bottom), radius=20, fill="#08743f")
-    _draw_wrapped_center(
-        draw,
-        "رابط التقديم الرسمي في أول تعليق",
-        Box(FOOTER_BOX.x + 30, FOOTER_BOX.y + 14, FOOTER_BOX.w - 60, 50),
-        cta_font,
-        "#ffffff",
-        max_lines=1,
-    )
-    _draw_wrapped_center(
-        draw,
-        "تابع الصفحة لتصلك آخر مباريات وفرص العمل في المغرب",
-        Box(FOOTER_BOX.x + 30, FOOTER_BOX.y + 66, FOOTER_BOX.w - 60, 30),
-        hint_font,
-        "#e8fff0",
-        max_lines=1,
-    )
+def _draw_highlight_box(draw: ImageDraw.ImageDraw, box: Box, label: str, value: str) -> None:
+    label_font = _font(25, bold=True)
+    value_font = _fit_font_for_box(draw, value, Box(box.x + 18, box.y + 48, box.w - 36, 52), start=34, minimum=24, max_lines=2)
+    _draw_soft_shadow(draw, box, radius=20)
+    draw.rounded_rectangle((box.x, box.y, box.right, box.bottom), radius=20, fill="#f9fbfd", outline="#e1e6ec", width=2)
+    _draw_wrapped_center(draw, label, Box(box.x + 18, box.y + 14, box.w - 36, 28), label_font, "#6b7280", max_lines=1)
+    _draw_wrapped_center(draw, value, Box(box.x + 18, box.y + 50, box.w - 36, 54), value_font, "#111820", max_lines=2)
 
 
 def create_job_image(job: dict[str, Any], post_data: dict[str, Any]) -> Path:
@@ -327,12 +389,63 @@ def create_job_image(job: dict[str, Any], post_data: dict[str, Any]) -> Path:
     image, draw = _base_canvas()
 
     title = str(post_data.get("image_title") or job.get("title") or "فرصة عمل جديدة").strip()
-    title_font = _fit_font_for_box(draw, title, TITLE_BOX, start=86, minimum=50, max_lines=3)
-    _draw_wrapped_center(draw, title, TITLE_BOX, title_font, "#111820", line_spacing=14, max_lines=3)
+    brand_font = _font(30, bold=True)
+    brand_small_font = _font(17, bold=True)
+    category_font = _font(28, bold=True)
+    label_font = _font(24, bold=True)
+    org_font = _fit_font_for_box(
+        draw,
+        _value_or_missing(job.get("company")),
+        Box(ORGANIZER_BOX.x + 28, ORGANIZER_BOX.y + 34, ORGANIZER_BOX.w - 56, 34),
+        start=28,
+        minimum=20,
+        max_lines=1,
+    )
 
-    for box, (label, value) in zip(DETAIL_BOXES, _detail_items(job)):
+    draw.text((540, 42), "Offres d'emploi", font=brand_font, fill="#ffffff", anchor="ma")
+    draw.line((462, 76, 528, 76), fill="#08743f", width=3)
+    draw.line((552, 76, 618, 76), fill="#cf1f28", width=3)
+    draw.text((540, 88), "par badr ai", font=brand_small_font, fill="#d4e5de", anchor="ma")
+
+    category = _category_label(job, post_data)
+    draw.rounded_rectangle((724, 148, 988, 194), radius=23, fill="#071422")
+    _draw_wrapped_center(draw, category, Box(742, 155, 228, 32), category_font, "#ffffff", max_lines=1)
+    draw.rounded_rectangle((92, 148, 308, 194), radius=23, fill="#f4eee5", outline="#e6b25c", width=2)
+    _draw_wrapped_center(draw, "إعلان رسمي", Box(112, 155, 176, 32), category_font, "#8d5a13", max_lines=1)
+
+    title_font = _fit_font_for_box(draw, title, TITLE_BOX, start=54, minimum=35, max_lines=3)
+    _draw_wrapped_center(draw, title, TITLE_BOX, title_font, "#111820", line_spacing=12, max_lines=3)
+
+    _draw_soft_shadow(draw, ORGANIZER_BOX, radius=18)
+    draw.rounded_rectangle(
+        (ORGANIZER_BOX.x, ORGANIZER_BOX.y, ORGANIZER_BOX.right, ORGANIZER_BOX.bottom),
+        radius=18,
+        fill="#f9fbfd",
+        outline="#e1e6ec",
+        width=2,
+    )
+    _draw_wrapped_right(
+        draw,
+        "الإدارة المنظمة",
+        Box(ORGANIZER_BOX.x + 28, ORGANIZER_BOX.y + 12, ORGANIZER_BOX.w - 56, 24),
+        label_font,
+        "#08743f",
+        max_lines=1,
+    )
+    _draw_wrapped_right(
+        draw,
+        _value_or_missing(job.get("company")),
+        Box(ORGANIZER_BOX.x + 28, ORGANIZER_BOX.y + 44, ORGANIZER_BOX.w - 56, 34),
+        org_font,
+        "#111820",
+        max_lines=1,
+    )
+
+    for box, (label, value) in zip(HIGHLIGHT_BOXES, _highlight_items(job)):
+        _draw_highlight_box(draw, box, label, value)
+
+    for box, (label, value) in zip(INFO_GRID_BOXES, _detail_items(job)):
         _draw_detail_box(draw, box, label, value)
-    _draw_footer(draw)
 
     file_name = f"{job.get('source', 'job')}-{_safe_filename(str(job.get('job_id') or job.get('title')))}.png"
     output_path = OUTPUT_DIR / file_name

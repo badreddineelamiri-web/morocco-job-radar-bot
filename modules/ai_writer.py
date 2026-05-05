@@ -56,6 +56,21 @@ def _value_or_missing(value: Any) -> str:
     return text or "غير مذكور"
 
 
+def _first_value(job: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = job.get(key)
+        if value:
+            return str(value).strip()
+    return ""
+
+
+def _clean_location(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text or text.lower() in {"morocco", "maroc", "المغرب"}:
+        return "على الصعيد الوطني"
+    return text
+
+
 def _application_link(job: dict[str, Any]) -> str:
     return str(job.get("application_url") or job.get("announcement_url") or job.get("url") or "").strip()
 
@@ -83,12 +98,13 @@ def _requirements_block(job: dict[str, Any]) -> str:
     return "\n".join(f"- {item}" for item in _requirements(job))
 
 
-def _why_this_job(job: dict[str, Any]) -> str:
-    if _is_government_job(job):
-        return "فرصة مناسبة للمهتمين بالعمل في القطاع العمومي، مع ضرورة مراجعة الإعلان الرسمي للتأكد من الشروط والآجال."
-    if job.get("remote"):
-        return "فرصة مرنة قد تناسب الباحثين عن عمل عن بعد أو تجربة مهنية أوسع داخل سوق الشغل."
-    return "فرصة تستحق الاطلاع إذا كانت خبرتك أو اهتماماتك قريبة من متطلبات المنصب."
+def _optional_line(label: str, value: Any) -> str:
+    text = str(value).strip() if value else ""
+    return f"- {label}: {text}\n" if text else ""
+
+
+def _hashtags_block(hashtags: list[str]) -> str:
+    return " ".join(dict.fromkeys(tag.strip() for tag in hashtags if str(tag).strip()))
 
 
 def _first_comment(job: dict[str, Any]) -> str:
@@ -110,26 +126,34 @@ def fallback_government_post(job: dict[str, Any]) -> dict[str, Any]:
     hashtags = _fallback_hashtags(job)
     title = _value_or_missing(job.get("title"))
     company = _value_or_missing(job.get("company"))
-    location = _value_or_missing(job.get("location"))
+    location = _clean_location(job.get("location"))
     positions = _value_or_missing(job.get("positions"))
     deadline = _value_or_missing(job.get("deadline"))
     exam_date = _value_or_missing(job.get("exam_date"))
+    specialty = _first_value(job, "specialty", "speciality", "field")
+    grade = _first_value(job, "grade", "degree")
+    published_at = _first_value(job, "published_at", "publication_date", "publish_date")
+    employment_type = _first_value(job, "employment_type", "recruitment_type") or "توظيف نظامي"
+    deposit_type = _first_value(job, "deposit_type", "submission_type") or "حسب الإعلان الرسمي"
 
     facebook_post = (
-        "فرصة عمل جديدة في المغرب\n\n"
-        "التفاصيل:\n"
-        f"- المنصب: {title}\n"
-        f"- الشركة / المؤسسة: {company}\n"
-        f"- المدينة: {location}\n"
+        f"مباراة توظيف: {title}\n\n"
+        "تفاصيل الإعلان:\n"
+        f"- الإدارة المنظمة: {company}\n"
         f"- عدد المناصب: {positions}\n"
         f"- آخر أجل: {deadline}\n"
-        f"- تاريخ المباراة: {exam_date}\n\n"
-        "المتطلبات الأساسية:\n"
-        f"{_requirements_block(job)}\n\n"
-        "لماذا هذه الفرصة؟\n"
-        f"{_why_this_job(job)}\n\n"
-        "للتقديم والاطلاع على التفاصيل، الرابط الرسمي موجود في أول تعليق.\n\n"
-        + " ".join(hashtags)
+        f"- تاريخ إجراء المباراة: {exam_date}\n"
+        f"{_optional_line('تاريخ النشر', published_at)}"
+        f"- مكان العمل: {location}\n\n"
+        "معلومات المباراة:\n"
+        f"{_optional_line('التخصص', specialty)}"
+        f"{_optional_line('الدرجة', grade)}"
+        f"- نوع التوظيف: {employment_type}\n"
+        f"- نوع الإيداع: {deposit_type}\n\n"
+        "ملاحظة:\n"
+        "- رابط التقديم أو الإعلان الرسمي موجود في أول تعليق.\n"
+        "- يرجى التأكد من الشروط والوثائق داخل المصدر الرسمي قبل الترشيح.\n\n"
+        f"{_hashtags_block(hashtags)}"
     )
     return {
         "facebook_post": facebook_post,
@@ -147,15 +171,14 @@ def fallback_scholarship_post(job: dict[str, Any]) -> dict[str, Any]:
     deadline = _value_or_missing(job.get("deadline"))
 
     facebook_post = (
-        "فرصة جديدة للمغاربة\n\n"
-        "التفاصيل:\n"
-        f"- الفرصة: {title}\n"
+        f"فرصة تكوين أو منحة: {title}\n\n"
+        "تفاصيل الفرصة:\n"
         f"- الجهة: {organization}\n"
         f"- آخر أجل: {deadline}\n\n"
         "ملاحظة مهمة:\n"
-        "يرجى مراجعة المصدر الرسمي للتأكد من شروط الترشيح، الوثائق المطلوبة، والآجال النهائية.\n\n"
-        "رابط التفاصيل أو التقديم موجود في أول تعليق.\n\n"
-        + " ".join(hashtags)
+        "- رابط التفاصيل أو التقديم موجود في أول تعليق.\n"
+        "- يرجى مراجعة المصدر الرسمي للتأكد من شروط الترشيح والوثائق المطلوبة.\n\n"
+        f"{_hashtags_block(hashtags)}"
     )
     return {
         "facebook_post": facebook_post,
@@ -170,22 +193,21 @@ def fallback_private_post(job: dict[str, Any]) -> dict[str, Any]:
     hashtags = _fallback_hashtags(job)
     title = _value_or_missing(job.get("title"))
     company = _value_or_missing(job.get("company"))
-    location = _value_or_missing(job.get("location"))
+    location = _clean_location(job.get("location"))
     remote_label = "عن بعد" if job.get("remote") else "حضوري أو حسب إعلان الشركة"
 
     facebook_post = (
-        "فرصة عمل جديدة في المغرب\n\n"
-        "التفاصيل:\n"
-        f"- المنصب: {title}\n"
+        f"فرصة عمل: {title}\n\n"
+        "تفاصيل العرض:\n"
         f"- الشركة / المؤسسة: {company}\n"
-        f"- المدينة: {location}\n"
+        f"- مكان العمل: {location}\n"
         f"- نمط العمل: {remote_label}\n\n"
-        "المتطلبات الأساسية:\n"
+        "المتطلبات أو الكلمات المفتاحية:\n"
         f"{_requirements_block(job)}\n\n"
-        "لماذا هذه الفرصة؟\n"
-        f"{_why_this_job(job)}\n\n"
-        "للتقديم والاطلاع على التفاصيل، الرابط الرسمي موجود في أول تعليق.\n\n"
-        + " ".join(hashtags)
+        "ملاحظة:\n"
+        "- رابط التقديم أو الإعلان الرسمي موجود في أول تعليق.\n"
+        "- راجع تفاصيل العرض قبل إرسال الترشيح.\n\n"
+        f"{_hashtags_block(hashtags)}"
     )
     return {
         "facebook_post": facebook_post,
@@ -252,6 +274,8 @@ def _job_prompt(job: dict[str, Any]) -> str:
     template = (
         "اكتب منشور فيسبوك عربي واضح ومهني لجمهور مغربي عن فرصة العمل التالية. "
         "استعمل العربية الفصحى البسيطة، واجعل المنشور منظما وسهل القراءة. "
+        "لا تكتب فقرات طويلة؛ استعمل عنوانا قويا ثم عناوين قصيرة وقوائم بشرطات فقط. "
+        "اجعل الترتيب مناسبا لفيسبوك: تفاصيل الإعلان، معلومات المباراة أو العرض، ملاحظة، ثم الهاشتاغات. "
         "لا تخترع الراتب أو الآجال أو الشروط غير الموجودة في بيانات الوظيفة. "
         "ضع رابط التقديم أو الإعلان الرسمي في first_comment فقط، ولا تضعه داخل facebook_post. "
         "اجعل image_title قصيرا وقويا لأنه سيظهر بخط كبير على الصورة. "

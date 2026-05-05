@@ -6,6 +6,25 @@ on:
     # 12 runs/day * 31 days * 5 min max = 1,860 minutes/month worst case.
     - cron: '0 */2 * * *'
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run without publishing to Facebook'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      max_jobs:
+        description: 'Maximum jobs to publish or simulate'
+        required: true
+        default: '4'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
 
 permissions:
   contents: write
@@ -29,18 +48,29 @@ jobs:
           python-version: '3.12'
           cache: pip
 
+      - name: Install system fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-noto-core fonts-noto-ui-core fonts-noto-color-emoji
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Smoke test image, post, and dry-run publish
+        env:
+          PYTHONIOENCODING: utf-8
+          DRY_RUN: 'true'
+        run: python test_system.py
+
       - name: Run bot
         env:
           PYTHONIOENCODING: utf-8
-          DRY_RUN: ${{ secrets.DRY_RUN }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || secrets.DRY_RUN || 'true' }}
           REQUEST_TIMEOUT: 5
           GOV_MAX_ITEMS_PER_SOURCE: 4
-          MAX_JOBS_PER_RUN: 4
+          MAX_JOBS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_jobs || '4' }}
 
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           AI_FINAL_PROVIDER_ORDER: ${{ secrets.AI_FINAL_PROVIDER_ORDER }}
