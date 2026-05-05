@@ -46,6 +46,10 @@ def _dry_run_enabled() -> bool:
     return os.getenv("DRY_RUN", "true").strip().lower() in {"1", "true", "yes"}
 
 
+def _facebook_credentials_ready() -> bool:
+    return bool(os.getenv("FACEBOOK_PAGE_ID", "").strip() and os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "").strip())
+
+
 def _source_in_cooldown(state: dict[str, Any], source_name: str) -> bool:
     failed = state.get("failed_sources", {}).get(source_name, {})
     if not isinstance(failed, dict) or int(failed.get("fail_count", 0)) < 3:
@@ -114,6 +118,9 @@ def _publish_or_print(job: dict[str, Any], state: dict[str, Any]) -> bool:
 
 def main() -> None:
     os.environ.setdefault("DRY_RUN", "true")
+    if not _dry_run_enabled() and not _facebook_credentials_ready():
+        raise SystemExit("FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN must be set for live publishing.")
+
     sources = enabled_sources()
     if not sources:
         LOGGER.warning("No enabled sources configured.")
