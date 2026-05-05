@@ -23,6 +23,46 @@ SUSPICIOUS_WORDS = (
     "crypto",
     "casino",
 )
+GENERIC_TITLE_WORDS = (
+    "connexion",
+    "login",
+    "authenticate",
+    "français",
+    "arabic",
+    "accueil",
+    "contact",
+    "plan du site",
+    "activer le mode",
+    "me connecter",
+    "tamazight",
+    "ⵜⴰⵎⴰⵣⵉⵖⵜ",
+    "العربية",
+    "english",
+)
+GENERIC_EXACT_TITLES = {
+    "concours",
+    "recrutement",
+    "emploi",
+    "jobs",
+    "offres d'emploi",
+    "recrutement et carrières",
+    "recrutement et carrieres",
+    "consulter l'appel à candidature",
+    "consulter l'appel a candidature",
+    "avis de prolongation",
+}
+OFFICIAL_JOB_WORDS = (
+    "concours",
+    "recrutement",
+    "candidature",
+    "poste",
+    "emploi",
+    "appel à candidature",
+    "مباراة",
+    "توظيف",
+    "ترشيح",
+    "منصب",
+)
 
 
 def job_identity(job: dict[str, Any]) -> str:
@@ -109,10 +149,21 @@ def has_required_fields(job: dict[str, Any], source: dict[str, Any]) -> tuple[bo
     title = str(job.get("title") or job.get("job_title") or "").strip()
     url = str(job.get("url") or job.get("application_url") or job.get("announcement_url") or "").strip()
     description = str(job.get("description") or "").strip()
+    searchable = " ".join([title, url, description]).lower()
     if len(title) < 5:
         return False, "missing clear title"
     if not url.startswith(("http://", "https://")):
         return False, "missing official/details link"
+    normalized_title = title.strip().lower()
+    if normalized_title in GENERIC_EXACT_TITLES:
+        return False, "generic source section title"
+    if "concourslistedep" in searchable or "concours-liste" in searchable:
+        return False, "generic list page link"
+    if any(word in searchable for word in GENERIC_TITLE_WORDS) or "authenticate.aspx" in searchable:
+        return False, "generic navigation/authentication link"
+    official_text = " ".join([title, description]).lower()
+    if is_official_source(source) and not any(word in official_text for word in OFFICIAL_JOB_WORDS):
+        return False, "official item does not look like a recruitment announcement"
     if is_private_source(source):
         city = str(job.get("city") or job.get("location") or "").strip()
         company = str(job.get("company") or job.get("organization") or "").strip()

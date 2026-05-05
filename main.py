@@ -13,6 +13,7 @@ from job_filter import published_record, validate_job
 from modules.facebook_publisher import publish_job
 from modules.image_maker import create_job_image
 from modules.job_tracker import get_published_count, mark_job_published
+from quality_gate import validate_image_quality, validate_post_quality
 from scrapers import scraper_for
 from sources import enabled_sources
 from state_manager import (
@@ -78,6 +79,10 @@ def _valid_jobs_from_source(source: dict[str, Any], state: dict[str, Any]) -> li
 
 def _publish_or_print(job: dict[str, Any], state: dict[str, Any]) -> bool:
     post_data = format_facebook_post(job)
+    post_ok, post_reason = validate_post_quality(post_data)
+    if not post_ok:
+        LOGGER.error("Post quality rejected for %s: %s", job.get("title"), post_reason)
+        return False
 
     if _dry_run_enabled():
         LOGGER.info("DRY_RUN enabled; Facebook publish skipped.")
@@ -91,6 +96,11 @@ def _publish_or_print(job: dict[str, Any], state: dict[str, Any]) -> bool:
         return True
 
     image_path = create_job_image(job, post_data)
+    image_ok, image_reason = validate_image_quality(image_path)
+    if not image_ok:
+        LOGGER.error("Image quality rejected for %s: %s", job.get("title"), image_reason)
+        return False
+
     result = publish_job(post_data, image_path)
     if not result.get("ok"):
         LOGGER.error("Publish failed: %s", result.get("error", "unknown error"))

@@ -2,9 +2,8 @@ name: Morocco Job Radar Bot
 
 on:
   schedule:
-    # Run forever from GitHub Actions while staying under the 2,000 min/month free budget.
-    # 12 runs/day * 31 days * 5 min max = 1,860 minutes/month worst case.
-    - cron: '0 */2 * * *'
+    # Run all day. Each run publishes at most one accepted job.
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -67,10 +66,10 @@ jobs:
       - name: Run bot
         env:
           PYTHONIOENCODING: utf-8
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || secrets.DRY_RUN || 'true' }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
           REQUEST_TIMEOUT: 20
           GOV_MAX_ITEMS_PER_SOURCE: 4
-          MAX_JOBS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_jobs || '4' }}
+          MAX_JOBS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_jobs || '1' }}
 
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           AI_FINAL_PROVIDER_ORDER: ${{ secrets.AI_FINAL_PROVIDER_ORDER }}
