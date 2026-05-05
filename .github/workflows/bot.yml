@@ -29,6 +29,9 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 concurrency:
   group: morocco-job-radar-bot
   cancel-in-progress: true
