@@ -325,5 +325,89 @@
         "id": "961352246259841_1378870697620708"
       }
     }
+  },
+  "64104c5a014efe0d1414": {
+    "title": "Avis d'emplois supérieurs Directeur des Relations avec la Société Civile",
+    "company": "Ministère délégué auprès du chef du gouvernement chargé des relations avec le parlement",
+    "source": "emploi-public",
+    "deadline": "13 Mai 2026 - 16:30",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/emploi-sup/details/50a4fceb-7a2a-4dfc-9d54-27d5969d8c20",
+    "application_url": "",
+    "published_at": "2026-05-05T07:34:34.925179",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961598596235206",
+        "post_id": "103026497833721_961598616235204"
+      },
+      "comment": {
+        "id": "961598596235206_2064621591156352"
+      }
+    }
+  },
+  "44ff81bcd53b6cc8a9cd": {
+    "title": "Déposer ma candidature",
+    "company": "OFPPT - Offres d'emploi",
+    "source": "ofppt.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.ofppt.ma/fr/deposer-ma-candidature",
+    "application_url": "",
+    "published_at": "2026-05-05T07:34:47.774183",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961598812901851",
+        "post_id": "103026497833721_961598832901849"
+      },
+      "comment": {
+        "id": "961598812901851_2735389216827622"
+      }
+    }
+  },
+  "23f3baf537f556665478": {
+    "title": "En savoir plus",
+    "company": "AMCI - Coopération et bourses",
+    "source": "amci.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.amci.ma/maroc-congo-accord-de-cooperation-dans-le-domaine-de-la-formation-professionnelle",
+    "application_url": "",
+    "published_at": "2026-05-05T07:35:01.102547",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961598959568503",
+        "post_id": "103026497833721_961598976235168"
+      },
+      "comment": {
+        "id": "961598959568503_1686898409017468"
+      }
+    }
+  },
+  "d6b4a2dbd36cab16c692": {
+    "title": ". Résultat Final",
+    "company": "ONDA - Recrutement",
+    "source": "onda.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.onda.ma/Je-découvre-ONDA/Ressources-humaines/Recrutement-2025/Résultat-Final2",
+    "application_url": "",
+    "published_at": "2026-05-05T07:35:16.005483",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961599139568485",
+        "post_id": "103026497833721_961599156235150"
+      },
+      "comment": {
+        "id": "961599139568485_962168419557970"
+      }
+    }
   }
 }
