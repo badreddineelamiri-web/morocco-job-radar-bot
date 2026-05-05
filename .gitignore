@@ -16,6 +16,8 @@ data/*
 !config/
 !config/*.json
 !data/published_jobs.json
+!state/
+!state/jobs_sources_state.json
 
 # Logs
 *.log

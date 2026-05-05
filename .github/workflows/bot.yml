@@ -68,7 +68,7 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || secrets.DRY_RUN || 'true' }}
-          REQUEST_TIMEOUT: 5
+          REQUEST_TIMEOUT: 20
           GOV_MAX_ITEMS_PER_SOURCE: 4
           MAX_JOBS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_jobs || '4' }}
 
@@ -123,7 +123,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/published_jobs.json
+          git add data/published_jobs.json state/jobs_sources_state.json
           if git diff --cached --quiet; then
             echo "No tracker changes to commit."
           else

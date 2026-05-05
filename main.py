@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-"""Main entry point for Morocco Job Radar Bot.
-
-The production run fetches official Moroccan job sources, skips already
-published jobs, generates a Facebook post plus image, and publishes to the
-configured Facebook Page.
-"""
+"""Run one Morocco Job Radar round-robin cycle."""
 
 from __future__ import annotations
 
+import datetime as dt
 import logging
 import os
-import sys
-from pathlib import Path
 from typing import Any
-from collections import defaultdict, deque
 
-sys.path.insert(0, str(Path(__file__).parent / "modules"))
-
-from modules.ai_writer import generate_post
+from facebook_formatter import format_facebook_post
+from job_filter import published_record, validate_job
 from modules.facebook_publisher import publish_job
-from modules.government_sources import fetch_government_jobs
 from modules.image_maker import create_job_image
-from modules.job_tracker import (
-    clean_old_jobs,
-    get_published_count,
-    is_job_published,
-    mark_job_published,
+from modules.job_tracker import get_published_count, mark_job_published
+from scrapers import scraper_for
+from sources import enabled_sources
+from state_manager import (
+    add_published_job,
+    clear_failed_source,
+    load_state,
+    record_failed_source,
+    save_state,
+    update_last_source,
 )
 
 
@@ -45,124 +41,122 @@ def _env_int(name: str, default: int, minimum: int = 1) -> int:
         return default
 
 
-def process_job(job: dict[str, Any]) -> str:
-    """Generate assets and publish one job.
+def _dry_run_enabled() -> bool:
+    return os.getenv("DRY_RUN", "true").strip().lower() in {"1", "true", "yes"}
 
-    Returns a status string: published, skipped, or failed.
-    """
+
+def _source_in_cooldown(state: dict[str, Any], source_name: str) -> bool:
+    failed = state.get("failed_sources", {}).get(source_name, {})
+    if not isinstance(failed, dict) or int(failed.get("fail_count", 0)) < 3:
+        return False
     try:
-        LOGGER.info("Processing job: %s at %s", job.get("title"), job.get("company"))
-
-        if is_job_published(job):
-            LOGGER.info("Job already published, skipping: %s", job.get("title"))
-            return "skipped"
-
-        LOGGER.info("Generating AI post...")
-        post_data = generate_post(job)
-
-        LOGGER.info("Creating job image...")
-        image_path = create_job_image(job, post_data)
-
-        LOGGER.info("Publishing to Facebook...")
-        result = publish_job(post_data, image_path)
-
-        if result.get("ok"):
-            LOGGER.info("Successfully published job: %s", job.get("title"))
-            if result.get("dry_run"):
-                LOGGER.info("DRY_RUN result not saved to published jobs tracker.")
-            else:
-                mark_job_published(job, result)
-            return "published"
-
-        LOGGER.error("Failed to publish job: %s", result.get("error", "Unknown error"))
-        return "failed"
-    except Exception as exc:
-        LOGGER.error("Error processing job: %s", exc, exc_info=True)
-        return "failed"
+        failed_at = dt.datetime.fromisoformat(str(failed.get("failed_at", "")))
+    except ValueError:
+        return False
+    if failed_at.tzinfo is None:
+        failed_at = failed_at.replace(tzinfo=dt.timezone.utc)
+    return dt.datetime.now(dt.timezone.utc) - failed_at < dt.timedelta(hours=1)
 
 
-def _round_robin_by_source(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Spread publishing across sources so one busy portal does not dominate."""
-    groups: dict[str, deque[dict[str, Any]]] = defaultdict(deque)
-    for job in jobs:
-        source_key = str(job.get("source") or job.get("source_page") or "unknown")
-        groups[source_key].append(job)
-
-    ordered: list[dict[str, Any]] = []
-    source_order = deque(groups.keys())
-    while source_order:
-        source_key = source_order.popleft()
-        group = groups[source_key]
-        if group:
-            ordered.append(group.popleft())
-        if group:
-            source_order.append(source_key)
-    return ordered
+def _ordered_indices(start_index: int, source_count: int) -> list[int]:
+    return [(start_index + offset) % source_count for offset in range(source_count)]
 
 
-def prioritize_jobs(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Prefer fresh items and rotate among sources before processing."""
-    fresh = [job for job in jobs if not is_job_published(job)]
-    already_seen = [job for job in jobs if is_job_published(job)]
-    return _round_robin_by_source(fresh) + _round_robin_by_source(already_seen)
+def _valid_jobs_from_source(source: dict[str, Any], state: dict[str, Any]) -> list[dict[str, Any]]:
+    scraper = scraper_for(source)
+    scraped_jobs = scraper.scrape()
+    LOGGER.info("%s fetched %d job(s).", source["name"], len(scraped_jobs))
+    valid_jobs: list[dict[str, Any]] = []
+    for job in scraped_jobs:
+        ok, reason = validate_job(job, source, state)
+        if ok:
+            valid_jobs.append(job)
+        else:
+            LOGGER.info("Skipped from %s: %s (%s)", source["name"], job.get("title"), reason)
+    return valid_jobs
+
+
+def _publish_or_print(job: dict[str, Any], state: dict[str, Any]) -> bool:
+    post_data = format_facebook_post(job)
+
+    if _dry_run_enabled():
+        LOGGER.info("DRY_RUN enabled; Facebook publish skipped.")
+        print("\n" + "=" * 70)
+        print("DRY RUN - POST PREVIEW")
+        print("=" * 70)
+        print(post_data["facebook_post"])
+        print("\nFIRST COMMENT:")
+        print(post_data["first_comment"])
+        print("=" * 70 + "\n")
+        return True
+
+    image_path = create_job_image(job, post_data)
+    result = publish_job(post_data, image_path)
+    if not result.get("ok"):
+        LOGGER.error("Publish failed: %s", result.get("error", "unknown error"))
+        return False
+
+    mark_job_published(job, result)
+    add_published_job(state, published_record(job))
+    LOGGER.info("Published job: %s", job.get("title"))
+    return True
 
 
 def main() -> None:
-    """Run one job radar cycle."""
-    LOGGER.info("Starting Morocco Job Radar Bot...")
-
-    cleaned = clean_old_jobs(days_to_keep=30)
-    if cleaned:
-        LOGGER.info("Cleaned %d old jobs from tracker", cleaned)
-
-    max_jobs = _env_int("MAX_JOBS_PER_RUN", default=3)
-    LOGGER.info("Fetching official government and agency job sources...")
-    jobs = fetch_government_jobs()
-
-    if not jobs:
-        LOGGER.warning("No jobs found. Exiting without publishing.")
+    os.environ.setdefault("DRY_RUN", "true")
+    sources = enabled_sources()
+    if not sources:
+        LOGGER.warning("No enabled sources configured.")
         return
 
-    jobs = prioritize_jobs(jobs)
-    LOGGER.info("Found %d jobs to scan; target is %d new publish(es).", len(jobs), max_jobs)
-
+    state = load_state()
+    max_jobs = _env_int("MAX_JOBS_PER_RUN", default=1)
+    start_index = (int(state.get("last_source_index", -1)) + 1) % len(sources)
     published_count = 0
-    failed_count = 0
-    skipped_count = 0
-    processed_count = 0
-    for index, job in enumerate(jobs, 1):
-        if published_count >= max_jobs:
-            LOGGER.info("Publish target reached; stopping scan.")
-            break
+    checked_count = 0
 
-        LOGGER.info("")
-        LOGGER.info("%s", "=" * 50)
-        LOGGER.info("Processing candidate job %d/%d", index, len(jobs))
-        LOGGER.info("%s", "=" * 50)
+    LOGGER.info("Starting round-robin at source index %d/%d.", start_index, len(sources) - 1)
+    LOGGER.info("DRY_RUN=%s", _dry_run_enabled())
 
-        status = process_job(job)
-        processed_count += 1
-        if status == "published":
-            published_count += 1
-        elif status == "failed":
-            failed_count += 1
-        else:
-            skipped_count += 1
+    for source_index in _ordered_indices(start_index, len(sources)):
+        source = sources[source_index]
+        checked_count += 1
+        update_last_source(state, source_index)
 
-    LOGGER.info("")
-    LOGGER.info("Bot run completed!")
-    LOGGER.info("Scanned: %d/%d candidate job(s)", processed_count, len(jobs))
-    LOGGER.info("Published: %d/%d target job(s)", published_count, max_jobs)
-    LOGGER.info("Skipped: %d job(s)", skipped_count)
-    LOGGER.info("Failed: %d job(s)", failed_count)
-    LOGGER.info("Total published jobs in tracker: %d", get_published_count())
+        if _source_in_cooldown(state, source["name"]):
+            LOGGER.warning("Skipping %s: in one-hour cooldown after repeated failures.", source["name"])
+            save_state(state)
+            continue
 
-    if failed_count and os.getenv("DRY_RUN", "").lower() not in {"1", "true", "yes"}:
-        raise SystemExit(1)
+        LOGGER.info("Checking source: %s", source["name"])
+        try:
+            valid_jobs = _valid_jobs_from_source(source, state)
+            clear_failed_source(state, source["name"])
+        except Exception as exc:
+            LOGGER.error("Source failed, moving on: %s - %s", source["name"], exc)
+            record_failed_source(state, source["name"], str(exc))
+            save_state(state)
+            continue
+
+        save_state(state)
+        if not valid_jobs:
+            LOGGER.info("No new valid job found in %s; moving to next source.", source["name"])
+            continue
+
+        for job in valid_jobs:
+            if _publish_or_print(job, state):
+                published_count += 1
+                if not _dry_run_enabled():
+                    save_state(state)
+            if published_count >= max_jobs:
+                LOGGER.info("Publish target reached: %d/%d.", published_count, max_jobs)
+                save_state(state)
+                LOGGER.info("Total published jobs in legacy tracker: %d", get_published_count())
+                return
+
+    LOGGER.info("Round-robin scan completed: checked %d source(s), published/previewed %d job(s).", checked_count, published_count)
+    save_state(state)
 
 
 if __name__ == "__main__":
-    if os.getenv("DRY_RUN", "").lower() in {"1", "true", "yes"}:
-        LOGGER.info("DRY RUN mode enabled - no actual publishing")
-
     main()
