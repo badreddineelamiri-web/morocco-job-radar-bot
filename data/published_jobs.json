@@ -409,5 +409,89 @@
         "id": "961599139568485_962168419557970"
       }
     }
+  },
+  "dffdfefd68a416ec5446": {
+    "title": "مباراة لتوظيف أستاذ محاضر من الدرجة أ - سلم 11",
+    "company": "وزارة التجهيز والماء",
+    "source": "emploi-public",
+    "deadline": "22 ماي 2026 - 16:30",
+    "exam_date": "10 يونيو 2026",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/ar/%D8%AA%D9%81%D8%A7%D8%B5%D9%8A%D9%84/%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA/70163694-0909-463d-b2f7-ef94f84eaec8",
+    "application_url": "",
+    "published_at": "2026-05-05T11:54:54.184130",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961739386221127",
+        "post_id": "103026497833721_961739422887790"
+      },
+      "comment": {
+        "id": "961739386221127_2244528103043289"
+      }
+    }
+  },
+  "c963f12b8329d30bf166": {
+    "title": "Trouver un emploi",
+    "company": "OFPPT - Offres d'emploi",
+    "source": "ofppt.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.ofppt.ma/fr/trouver-un-emploi",
+    "application_url": "",
+    "published_at": "2026-05-05T11:55:08.947215",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961739579554441",
+        "post_id": "103026497833721_961739606221105"
+      },
+      "comment": {
+        "id": "961739579554441_1509942030753231"
+      }
+    }
+  },
+  "7ba8d7e3da8703a7a037": {
+    "title": "En savoir plus",
+    "company": "AMCI - Coopération et bourses",
+    "source": "amci.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.amci.ma/maroc-soudan-du-sud-accord-de-cooperation-dans-le-domaine-de-la-formation-professionnelle",
+    "application_url": "",
+    "published_at": "2026-05-05T11:55:20.811232",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961739802887752",
+        "post_id": "103026497833721_961739819554417"
+      },
+      "comment": {
+        "id": "961739802887752_976860688168732"
+      }
+    }
+  },
+  "cf6a5385599d3005170c": {
+    "title": ". Liste des candidats éligibles pour passer l’épreuve écrite",
+    "company": "ONDA - Recrutement",
+    "source": "onda.ma",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.onda.ma/Je-découvre-ONDA/Ressources-humaines/Recrutement-2025/Liste-des-candidats-éligibles-pour-passer-l’épreuve-écrite",
+    "application_url": "",
+    "published_at": "2026-05-05T11:55:37.081564",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "961739952887737",
+        "post_id": "103026497833721_961739989554400"
+      },
+      "comment": {
+        "id": "961739952887737_2694355450949465"
+      }
+    }
   }
 }
