@@ -6,6 +6,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import os
+import sys
 from typing import Any
 
 from facebook_formatter import format_facebook_post
@@ -32,6 +33,11 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 LOGGER = logging.getLogger("Main")
+
+
+def _configure_stdout() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 def _env_int(name: str, default: int, minimum: int = 1) -> int:
@@ -117,6 +123,7 @@ def _publish_or_print(job: dict[str, Any], state: dict[str, Any]) -> bool:
 
 
 def main() -> None:
+    _configure_stdout()
     os.environ.setdefault("DRY_RUN", "true")
     if not _dry_run_enabled() and not _facebook_credentials_ready():
         raise SystemExit("FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN must be set for live publishing.")

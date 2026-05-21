@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -63,62 +63,76 @@ jobs:
           DRY_RUN: 'true'
         run: python test_system.py
 
+      - name: Resolve runtime mode
+        id: runtime
+        env:
+          REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+        run: |
+          dry_run="${REQUESTED_DRY_RUN:-false}"
+          if [ "$dry_run" != "true" ] && { [ -z "$FACEBOOK_PAGE_ID" ] || [ -z "$FACEBOOK_PAGE_ACCESS_TOKEN" ]; }; then
+            echo "::warning::Facebook secrets are missing; running in DRY_RUN mode. Add FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN repository secrets for live publishing."
+            dry_run="true"
+          fi
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+
       - name: Run bot
         env:
           PYTHONIOENCODING: utf-8
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          DRY_RUN: ${{ steps.runtime.outputs.dry_run }}
           REQUEST_TIMEOUT: 20
           GOV_MAX_ITEMS_PER_SOURCE: 4
           MAX_JOBS_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_jobs || '1' }}
 
-          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
-          AI_FINAL_PROVIDER_ORDER: ${{ secrets.AI_FINAL_PROVIDER_ORDER }}
-          AI_TASK_SUMMARY_PROVIDER_ORDER: ${{ secrets.AI_TASK_SUMMARY_PROVIDER_ORDER }}
-          AI_TASK_TRANSLATION_PROVIDER_ORDER: ${{ secrets.AI_TASK_TRANSLATION_PROVIDER_ORDER }}
-          AI_TASK_REWRITE_PROVIDER_ORDER: ${{ secrets.AI_TASK_REWRITE_PROVIDER_ORDER }}
-          AI_TASK_SEO_PROVIDER_ORDER: ${{ secrets.AI_TASK_SEO_PROVIDER_ORDER }}
-          AI_TASK_HTML_PROVIDER_ORDER: ${{ secrets.AI_TASK_HTML_PROVIDER_ORDER }}
-          AI_TASK_FACEBOOK_PROVIDER_ORDER: ${{ secrets.AI_TASK_FACEBOOK_PROVIDER_ORDER }}
-          AI_MAX_MODELS_PER_PROVIDER: ${{ secrets.AI_MAX_MODELS_PER_PROVIDER }}
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+          AI_FINAL_PROVIDER_ORDER: ${{ vars.AI_FINAL_PROVIDER_ORDER }}
+          AI_TASK_SUMMARY_PROVIDER_ORDER: ${{ vars.AI_TASK_SUMMARY_PROVIDER_ORDER }}
+          AI_TASK_TRANSLATION_PROVIDER_ORDER: ${{ vars.AI_TASK_TRANSLATION_PROVIDER_ORDER }}
+          AI_TASK_REWRITE_PROVIDER_ORDER: ${{ vars.AI_TASK_REWRITE_PROVIDER_ORDER }}
+          AI_TASK_SEO_PROVIDER_ORDER: ${{ vars.AI_TASK_SEO_PROVIDER_ORDER }}
+          AI_TASK_HTML_PROVIDER_ORDER: ${{ vars.AI_TASK_HTML_PROVIDER_ORDER }}
+          AI_TASK_FACEBOOK_PROVIDER_ORDER: ${{ vars.AI_TASK_FACEBOOK_PROVIDER_ORDER }}
+          AI_MAX_MODELS_PER_PROVIDER: ${{ vars.AI_MAX_MODELS_PER_PROVIDER }}
 
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
-          GEMINI_MODELS: ${{ secrets.GEMINI_MODELS }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          GEMINI_MODELS: ${{ vars.GEMINI_MODELS }}
 
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
-          OPENROUTER_MODELS: ${{ secrets.OPENROUTER_MODELS }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
+          OPENROUTER_MODELS: ${{ vars.OPENROUTER_MODELS }}
 
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-          COHERE_MODEL: ${{ secrets.COHERE_MODEL }}
-          COHERE_MODELS: ${{ secrets.COHERE_MODELS }}
+          COHERE_MODEL: ${{ vars.COHERE_MODEL }}
+          COHERE_MODELS: ${{ vars.COHERE_MODELS }}
 
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          GROQ_MODEL: ${{ secrets.GROQ_MODEL }}
-          GROQ_MODELS: ${{ secrets.GROQ_MODELS }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          GROQ_MODELS: ${{ vars.GROQ_MODELS }}
 
           HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
-          HUGGINGFACE_MODEL: ${{ secrets.HUGGINGFACE_MODEL }}
-          HUGGINGFACE_MODELS: ${{ secrets.HUGGINGFACE_MODELS }}
+          HUGGINGFACE_MODEL: ${{ vars.HUGGINGFACE_MODEL }}
+          HUGGINGFACE_MODELS: ${{ vars.HUGGINGFACE_MODELS }}
 
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-          MISTRAL_MODEL: ${{ secrets.MISTRAL_MODEL }}
-          MISTRAL_MODELS: ${{ secrets.MISTRAL_MODELS }}
+          MISTRAL_MODEL: ${{ vars.MISTRAL_MODEL }}
+          MISTRAL_MODELS: ${{ vars.MISTRAL_MODELS }}
 
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          NVIDIA_MODEL: ${{ secrets.NVIDIA_MODEL }}
-          NVIDIA_MODELS: ${{ secrets.NVIDIA_MODELS }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
+          NVIDIA_MODELS: ${{ vars.NVIDIA_MODELS }}
 
           TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
-          TOGETHER_MODEL: ${{ secrets.TOGETHER_MODEL }}
-          TOGETHER_MODELS: ${{ secrets.TOGETHER_MODELS }}
+          TOGETHER_MODEL: ${{ vars.TOGETHER_MODEL }}
+          TOGETHER_MODELS: ${{ vars.TOGETHER_MODELS }}
 
-          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
           FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
         run: python main.py
 
       - name: Commit published jobs tracker
-        if: success()
+        if: success() && steps.runtime.outputs.dry_run != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -132,7 +146,7 @@ jobs:
 
       - name: Upload generated images
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: generated-images
           path: data/generated_images/
