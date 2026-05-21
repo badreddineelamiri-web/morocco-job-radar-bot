@@ -40,6 +40,10 @@ GENERIC_TITLE_WORDS = (
     "english",
 )
 GENERIC_EXACT_TITLES = {
+    "annonce de recrutement",
+    "avis de recrutement",
+    "appel a candidature",
+    "appel à candidature",
     "concours",
     "recrutement",
     "emploi",
@@ -65,6 +69,15 @@ OFFICIAL_JOB_WORDS = (
     "ولوج",
     "تكوين",
 )
+
+LOW_INFORMATION_OFFICIAL_TITLES = {
+    "annonce de recrutement",
+    "avis de recrutement",
+    "appel a candidature",
+    "appel à candidature",
+    "consulter l'appel a candidature",
+    "consulter l'appel à candidature",
+}
 
 
 def job_identity(job: dict[str, Any]) -> str:
@@ -151,10 +164,18 @@ def has_publishable_announcement_type(job: dict[str, Any], source: dict[str, Any
     apply_job_metadata(job)
     kind = str(job.get("announcement_kind") or "")
     status = str(job.get("deadline_status") or "")
+    title = str(job.get("title") or job.get("job_title") or "").strip().lower()
+    positions = str(job.get("positions_count") or job.get("positions") or "").strip()
+    deadline = parse_date(str(job.get("deadline") or ""))
+    description = str(job.get("description") or "").strip()
     if kind in {"result", "call_list"}:
         return False, str(job.get("announcement_kind_reason") or "not an open application")
     if is_official_source(source) and kind not in {"job_opening", "training"}:
         return False, "official item is not a clear open announcement"
+    if is_official_source(source) and title in LOW_INFORMATION_OFFICIAL_TITLES and not positions and not deadline:
+        return False, "official announcement is too generic for job seekers"
+    if is_official_source(source) and not positions and not deadline and len(description) < 80:
+        return False, "official announcement is missing positions, deadline, and useful details"
     if status == "expired":
         return False, str(job.get("deadline_status_reason") or "deadline expired")
     return True, "announcement type is publishable"
