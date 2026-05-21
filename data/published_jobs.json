@@ -514,5 +514,26 @@
         "id": "974497121612020_949245661310973"
       }
     }
+  },
+  "42a5551204316a61d6b3": {
+    "title": "Avis de concours de recrutement de Ingénieur d'Etat 1er grade - Echelle 11",
+    "company": "Ministère de l’intérieur",
+    "source": "Emploi Public",
+    "deadline": "3 Juin 2026",
+    "exam_date": "21 Juin 2026",
+    "published_at_source": "",
+    "announcement_url": "https://www.emploi-public.ma/fr/concours-liste",
+    "application_url": "https://www.emploi-public.ma/fr/concours-liste",
+    "published_at": "2026-05-21T11:12:25.848644",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "974552268273172",
+        "post_id": "103026497833721_974552288273170"
+      },
+      "comment": {
+        "id": "974552268273172_2091019844777730"
+      }
+    }
   }
 }
