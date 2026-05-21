@@ -389,6 +389,7 @@ def _detail_items(job: dict[str, Any]) -> list[tuple[str, str]]:
         deposit_type = "حسب الإعلان الرسمي"
 
     candidates = [
+        ("نوع الإعلان", _announcement_label(job)),
         ("التخصص", _first_value(job, "specialty", "speciality", "field")),
         ("الدرجة", _first_value(job, "grade", "degree")),
         ("نوع التوظيف", employment_type),
@@ -409,6 +410,9 @@ def _highlight_items(job: dict[str, Any]) -> list[tuple[str, str]]:
 
 
 def _category_label(job: dict[str, Any], post_data: dict[str, Any]) -> str:
+    main_category = str(job.get("main_category_label") or "").strip()
+    if main_category:
+        return main_category
     explicit_job = str(job.get("announcement_type_label") or "").strip()
     if explicit_job:
         return explicit_job
@@ -420,6 +424,11 @@ def _category_label(job: dict[str, Any], post_data: dict[str, Any]) -> str:
     if _is_government_job(job):
         return "مباراة توظيف"
     return "فرصة عمل"
+
+
+def _announcement_label(job: dict[str, Any]) -> str:
+    label = str(job.get("announcement_type_label") or "").strip()
+    return label or "إعلان موثق"
 
 
 def _draw_detail_box(draw: ImageDraw.ImageDraw, box: Box, label: str, value: str) -> None:
@@ -458,11 +467,12 @@ def create_job_image(job: dict[str, Any], post_data: dict[str, Any]) -> Path:
     )
 
     category = _category_label(job, post_data)
+    announcement_label = _announcement_label(job)
     status_badge = str(job.get("deadline_status_reason") or "").strip()
     if status_badge.startswith("باقي ") or status_badge == "آخر يوم للترشيح":
         left_badge = status_badge
     else:
-        left_badge = "إعلان موثق"
+        left_badge = announcement_label
     draw.rounded_rectangle((724, 160, 958, 206), radius=23, fill="#071422")
     _draw_wrapped_center(draw, category, Box(742, 167, 198, 32), category_font, "#ffffff", max_lines=1)
     draw.rounded_rectangle((126, 160, 360, 206), radius=23, fill="#fff7ed", outline="#e6b25c", width=2)

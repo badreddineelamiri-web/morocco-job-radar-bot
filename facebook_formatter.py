@@ -113,6 +113,9 @@ def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
     source_name = _arabic_source(job.get("source_name") or job.get("source"))
     title = str(job.get("seo_title") or "").strip() or _arabic_job_title(job)
     image_title = str(job.get("seo_title") or "").strip() or _arabic_job_title(job)
+    main_category = _value(job.get("main_category_label"), "وظائف")
+    announcement_type = _value(job.get("announcement_type_label"), "إعلان")
+    category_line = f"{main_category} / {announcement_type}"
 
     if is_official(job):
         company = _arabic_source(job.get("organization") or job.get("company") or source_name)
@@ -122,20 +125,22 @@ def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
         status = _value(job.get("deadline_status_reason"), "راجع آخر أجل داخل الإعلان")
         facebook_post = (
             f"{title}\n\n"
+            f"التصنيف: {category_line}\n"
+            f"حالة الإعلان: {status}\n\n"
             f"الجهة المنظمة: {company}\n"
             f"عدد المناصب: {positions}\n"
             f"آخر أجل: {deadline}\n"
             f"تاريخ المباراة: {exam_date}\n\n"
-            f"حالة الترشيح: {status}\n\n"
             "التفاصيل والرابط الرسمي في أول تعليق.\n"
             "تأكد من الشروط والوثائق داخل الإعلان قبل الترشح.\n\n"
             f"المصدر: {source_name}"
         )
-        category = "مباراة توظيف"
+        category = main_category
     else:
         deadline_or_date = job.get("deadline") or job.get("publication_date") or job.get("published_at")
         facebook_post = (
             f"{title}\n\n"
+            f"التصنيف: {category_line}\n\n"
             f"المشغل: {_value(job.get('company') or job.get('organization'))}\n"
             f"المدينة: {_arabic_city(job.get('city') or job.get('location'))}\n"
             f"عدد المناصب: {_value(job.get('positions_count') or job.get('positions'))}\n"
@@ -144,7 +149,7 @@ def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
             "راجع تفاصيل العرض قبل إرسال الترشيح.\n\n"
             f"المصدر: {source_name}"
         )
-        category = "عرض عمل"
+        category = main_category
 
     first_comment = (
         "رابط التفاصيل أو التقديم:\n" + link
