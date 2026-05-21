@@ -111,19 +111,22 @@ def is_official(job: dict[str, Any]) -> bool:
 def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
     link = _value(job.get("application_url") or job.get("announcement_url") or job.get("url"), "")
     source_name = _arabic_source(job.get("source_name") or job.get("source"))
-    title = _arabic_job_title(job)
+    title = str(job.get("seo_title") or "").strip() or _arabic_job_title(job)
+    image_title = str(job.get("seo_title") or "").strip() or _arabic_job_title(job)
 
     if is_official(job):
         company = _arabic_source(job.get("organization") or job.get("company") or source_name)
         positions = _value(job.get("positions_count") or job.get("positions"))
         deadline = _value(job.get("deadline"))
         exam_date = _value(job.get("exam_date"))
+        status = _value(job.get("deadline_status_reason"), "راجع آخر أجل داخل الإعلان")
         facebook_post = (
-            f"إعلان توظيف رسمي: {title}\n\n"
+            f"{title}\n\n"
             f"الجهة المنظمة: {company}\n"
             f"عدد المناصب: {positions}\n"
             f"آخر أجل: {deadline}\n"
             f"تاريخ المباراة: {exam_date}\n\n"
+            f"حالة الترشيح: {status}\n\n"
             "التفاصيل والرابط الرسمي في أول تعليق.\n"
             "تأكد من الشروط والوثائق داخل الإعلان قبل الترشح.\n\n"
             f"المصدر: {source_name}"
@@ -132,7 +135,7 @@ def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
     else:
         deadline_or_date = job.get("deadline") or job.get("publication_date") or job.get("published_at")
         facebook_post = (
-            f"عرض عمل جديد: {title}\n\n"
+            f"{title}\n\n"
             f"المشغل: {_value(job.get('company') or job.get('organization'))}\n"
             f"المدينة: {_arabic_city(job.get('city') or job.get('location'))}\n"
             f"عدد المناصب: {_value(job.get('positions_count') or job.get('positions'))}\n"
@@ -154,7 +157,7 @@ def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
     return {
         "facebook_post": facebook_post,
         "first_comment": first_comment,
-        "image_title": title[:90],
+        "image_title": image_title[:90],
         "category": category,
         "hashtags": [],
         "source_url": link,

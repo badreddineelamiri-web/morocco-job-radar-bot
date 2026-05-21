@@ -78,20 +78,20 @@ class Box:
 
 
 CONTENT_BOX = Box(86, 142, 908, 720)
-TITLE_BOX = Box(126, 186, 828, 126)
-ORGANIZER_BOX = Box(126, 328, 828, 78)
+TITLE_BOX = Box(126, 220, 828, 108)
+ORGANIZER_BOX = Box(126, 350, 828, 78)
 HIGHLIGHT_BOXES = [
-    Box(126, 434, 252, 104),
-    Box(414, 434, 252, 104),
-    Box(702, 434, 252, 104),
+    Box(126, 456, 252, 104),
+    Box(414, 456, 252, 104),
+    Box(702, 456, 252, 104),
 ]
 INFO_GRID_BOXES = [
-    Box(126, 574, 396, 76),
-    Box(558, 574, 396, 76),
-    Box(126, 668, 396, 76),
-    Box(558, 668, 396, 76),
-    Box(126, 762, 396, 76),
-    Box(558, 762, 396, 76),
+    Box(126, 596, 396, 76),
+    Box(558, 596, 396, 76),
+    Box(126, 690, 396, 76),
+    Box(558, 690, 396, 76),
+    Box(126, 784, 396, 76),
+    Box(558, 784, 396, 76),
 ]
 
 
@@ -409,6 +409,9 @@ def _highlight_items(job: dict[str, Any]) -> list[tuple[str, str]]:
 
 
 def _category_label(job: dict[str, Any], post_data: dict[str, Any]) -> str:
+    explicit_job = str(job.get("announcement_type_label") or "").strip()
+    if explicit_job:
+        return explicit_job
     explicit = str(post_data.get("category") or "").strip()
     if explicit:
         return explicit
@@ -455,10 +458,15 @@ def create_job_image(job: dict[str, Any], post_data: dict[str, Any]) -> Path:
     )
 
     category = _category_label(job, post_data)
+    status_badge = str(job.get("deadline_status_reason") or "").strip()
+    if status_badge.startswith("باقي ") or status_badge == "آخر يوم للترشيح":
+        left_badge = status_badge
+    else:
+        left_badge = "إعلان موثق"
     draw.rounded_rectangle((724, 160, 958, 206), radius=23, fill="#071422")
     _draw_wrapped_center(draw, category, Box(742, 167, 198, 32), category_font, "#ffffff", max_lines=1)
-    draw.rounded_rectangle((126, 160, 324, 206), radius=23, fill="#fff7ed", outline="#e6b25c", width=2)
-    _draw_wrapped_center(draw, "إعلان موثق", Box(146, 167, 158, 32), category_font, "#8d5a13", max_lines=1)
+    draw.rounded_rectangle((126, 160, 360, 206), radius=23, fill="#fff7ed", outline="#e6b25c", width=2)
+    _draw_wrapped_center(draw, left_badge, Box(146, 167, 194, 32), category_font, "#8d5a13", max_lines=1)
 
     title_font = _fit_font_for_box(draw, title, TITLE_BOX, start=50, minimum=34, max_lines=3)
     _draw_wrapped_center(draw, title, TITLE_BOX, title_font, "#111820", line_spacing=12, max_lines=3)

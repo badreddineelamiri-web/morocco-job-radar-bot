@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from date_parser import parse_date
+from job_classifier import apply_job_metadata
 
 
 OLD_TRACKER_PATH = Path("data/published_jobs.json")
@@ -35,7 +36,6 @@ GENERIC_TITLE_WORDS = (
     "activer le mode",
     "me connecter",
     "tamazight",
-    "ⵜⴰⵎⴰⵣⵉⵖⵜ",
     "العربية",
     "english",
 )
@@ -62,6 +62,8 @@ OFFICIAL_JOB_WORDS = (
     "توظيف",
     "ترشيح",
     "منصب",
+    "ولوج",
+    "تكوين",
 )
 
 
@@ -145,6 +147,19 @@ def is_date_valid(job: dict[str, Any], source: dict[str, Any], today: dt.date | 
     return False, "missing usable date"
 
 
+def has_publishable_announcement_type(job: dict[str, Any], source: dict[str, Any]) -> tuple[bool, str]:
+    apply_job_metadata(job)
+    kind = str(job.get("announcement_kind") or "")
+    status = str(job.get("deadline_status") or "")
+    if kind in {"result", "call_list"}:
+        return False, str(job.get("announcement_kind_reason") or "not an open application")
+    if is_official_source(source) and kind not in {"job_opening", "training"}:
+        return False, "official item is not a clear open announcement"
+    if status == "expired":
+        return False, str(job.get("deadline_status_reason") or "deadline expired")
+    return True, "announcement type is publishable"
+
+
 def has_required_fields(job: dict[str, Any], source: dict[str, Any]) -> tuple[bool, str]:
     title = str(job.get("title") or job.get("job_title") or "").strip()
     url = str(job.get("url") or job.get("application_url") or job.get("announcement_url") or "").strip()
@@ -192,6 +207,7 @@ def passes_private_safety(job: dict[str, Any], source: dict[str, Any]) -> tuple[
 def validate_job(job: dict[str, Any], source: dict[str, Any], state: dict[str, Any]) -> tuple[bool, str]:
     checks = [
         has_required_fields(job, source),
+        has_publishable_announcement_type(job, source),
         is_date_valid(job, source),
         passes_private_safety(job, source),
     ]
@@ -207,6 +223,8 @@ def published_record(job: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": job_identity(job),
         "title": job.get("title") or job.get("job_title"),
+        "seo_title": job.get("seo_title"),
+        "announcement_kind": job.get("announcement_kind"),
         "source": job.get("source") or job.get("source_name"),
         "organization": job.get("organization") or job.get("company"),
         "url": job.get("url") or job.get("application_url") or job.get("announcement_url"),
