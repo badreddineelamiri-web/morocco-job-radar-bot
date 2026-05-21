@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from bs4 import BeautifulSoup
 
 from scrapers.base import BaseScraper
@@ -26,7 +28,7 @@ class EmploiPublicScraper(BaseScraper):
             jobs.append(
                 self.normalize_job(
                     title=title,
-                    organization=self._organization(text),
+                    organization=self._organization(text, title),
                     description=text,
                     url=url,
                     deadline=self.extract_labeled_date(
@@ -40,9 +42,21 @@ class EmploiPublicScraper(BaseScraper):
             )
         return jobs
 
-    def _organization(self, text: str) -> str:
+    def _organization(self, text: str, title: str = "") -> str:
         markers = ["Administration organisatrice", "Administration", "الإدارة المنظمة"]
         for marker in markers:
             if marker.lower() in text.lower():
                 return text.split(marker, 1)[-1].strip(" :|-")[:140]
+        remainder = text
+        if title and remainder.lower().startswith(title.lower()):
+            remainder = remainder[len(title) :].strip()
+        remainder = re.split(
+            r"\b(?:Annonce|Dépôt|Depot|Arrêté|Arrete|Limite de dépôt|Limite de depot|\d+\s+postes?)\b",
+            remainder,
+            maxsplit=1,
+            flags=re.IGNORECASE,
+        )[0]
+        remainder = self.clean_text(remainder).strip(" :|-")
+        if len(remainder) >= 4:
+            return remainder[:140]
         return "Administration publique"

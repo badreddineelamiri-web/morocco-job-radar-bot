@@ -46,6 +46,11 @@ CITY_TRANSLATIONS = {
 }
 
 SOURCE_TRANSLATIONS = {
+    "Ministère de l’intérieur": "وزارة الداخلية",
+    "Ministère de l'interieur": "وزارة الداخلية",
+    "Ministère de la Santé et de la Protection sociale": "وزارة الصحة والحماية الاجتماعية",
+    "Ministère de l’Économie et des Finances": "وزارة الاقتصاد والمالية",
+    "Ministère de l'Economie et des Finances": "وزارة الاقتصاد والمالية",
     "Ministere Industrie Commerce": "وزارة الصناعة والتجارة",
     "Ministere Equipement Eau": "وزارة التجهيز والماء",
     "Ministere Transport Logistique": "وزارة النقل واللوجستيك",

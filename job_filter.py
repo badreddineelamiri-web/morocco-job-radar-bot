@@ -194,7 +194,14 @@ def has_required_fields(job: dict[str, Any], source: dict[str, Any]) -> tuple[bo
     if normalized_title in GENERIC_EXACT_TITLES:
         return False, "generic source section title"
     if "concourslistedep" in searchable or "concours-liste" in searchable:
-        return False, "generic list page link"
+        has_public_details = (
+            str(job.get("source_name") or job.get("source") or "").strip() == "Emploi Public"
+            and str(job.get("positions_count") or job.get("positions") or "").strip()
+            and parse_date(str(job.get("deadline") or ""))
+            and parse_date(str(job.get("exam_date") or ""))
+        )
+        if not has_public_details:
+            return False, "generic list page link"
     if any(word in searchable for word in GENERIC_TITLE_WORDS) or "authenticate.aspx" in searchable:
         return False, "generic navigation/authentication link"
     official_text = " ".join([title, description]).lower()
