@@ -22,6 +22,9 @@ JOB_TITLE_TRANSLATIONS = {
     "adjoint technique": "مساعد تقني",
     "architecte": "مهندس معماري",
     "inspecteur du travail": "مفتش الشغل",
+    "directeur": "مدير",
+    "chef de division": "رئيس قسم",
+    "chef de service": "رئيس مصلحة",
 }
 
 CITY_TRANSLATIONS = {
@@ -40,6 +43,18 @@ CITY_TRANSLATIONS = {
     "oujda": "وجدة",
     "meknes": "مكناس",
     "el jadida": "الجديدة",
+}
+
+SOURCE_TRANSLATIONS = {
+    "Ministere Industrie Commerce": "وزارة الصناعة والتجارة",
+    "Ministere Equipement Eau": "وزارة التجهيز والماء",
+    "Ministere Transport Logistique": "وزارة النقل واللوجستيك",
+    "Ministere Habitat Urbanisme": "وزارة إعداد التراب الوطني والتعمير والإسكان",
+    "Emploi Public": "بوابة التشغيل العمومي",
+    "ANAPEC": "أنابيك",
+    "OFPPT": "مكتب التكوين المهني وإنعاش الشغل",
+    "Enseignement Superieur Recrutement": "وزارة التعليم العالي والبحث العلمي",
+    "Collectivites Territoriales": "الجماعات الترابية",
 }
 
 
@@ -68,6 +83,8 @@ def _strip_source_noise(text: str) -> str:
 def _arabic_job_title(job: dict[str, Any]) -> str:
     title = _strip_source_noise(_value(job.get("job_title") or job.get("title"), ""))
     lowered = title.lower()
+    if "fiche poste directeur" in lowered:
+        return "منصب مدير"
     for needle, translated in JOB_TITLE_TRANSLATIONS.items():
         if needle in lowered:
             return translated
@@ -81,6 +98,11 @@ def _arabic_city(value: Any) -> str:
     return CITY_TRANSLATIONS.get(city.lower(), city if _arabic_ratio(city) >= 0.4 else "غير مذكور")
 
 
+def _arabic_source(value: Any) -> str:
+    text = _value(value)
+    return SOURCE_TRANSLATIONS.get(text, text)
+
+
 def is_official(job: dict[str, Any]) -> bool:
     source_type = str(job.get("source_type") or "")
     return source_type in {"official_public", "official_ministry", "public_institution"}
@@ -88,38 +110,44 @@ def is_official(job: dict[str, Any]) -> bool:
 
 def format_facebook_post(job: dict[str, Any]) -> dict[str, Any]:
     link = _value(job.get("application_url") or job.get("announcement_url") or job.get("url"), "")
-    source_name = _value(job.get("source_name") or job.get("source"))
+    source_name = _arabic_source(job.get("source_name") or job.get("source"))
     title = _arabic_job_title(job)
 
     if is_official(job):
+        company = _arabic_source(job.get("organization") or job.get("company") or source_name)
+        positions = _value(job.get("positions_count") or job.get("positions"))
+        deadline = _value(job.get("deadline"))
+        exam_date = _value(job.get("exam_date"))
         facebook_post = (
-            "مباراة توظيف رسمية بالمغرب\n\n"
-            f"المنصب: {title}\n"
-            f"الإدارة المنظمة: {_value(job.get('organization') or job.get('company'))}\n"
-            f"عدد المناصب: {_value(job.get('positions_count') or job.get('positions'))}\n"
-            f"آخر أجل للترشيح: {_value(job.get('deadline'))}\n"
-            f"تاريخ المباراة: {_value(job.get('exam_date'))}\n\n"
-            "رابط التفاصيل والتقديم في أول تعليق.\n\n"
-            "تابع الصفحة للمزيد من مباريات التوظيف بالمغرب.\n\n"
+            f"إعلان توظيف رسمي: {title}\n\n"
+            f"الجهة المنظمة: {company}\n"
+            f"عدد المناصب: {positions}\n"
+            f"آخر أجل: {deadline}\n"
+            f"تاريخ المباراة: {exam_date}\n\n"
+            "التفاصيل والرابط الرسمي في أول تعليق.\n"
+            "تأكد من الشروط والوثائق داخل الإعلان قبل الترشح.\n\n"
             f"المصدر: {source_name}"
         )
-        category = "مباراة توظيف رسمية"
+        category = "مباراة توظيف"
     else:
         deadline_or_date = job.get("deadline") or job.get("publication_date") or job.get("published_at")
         facebook_post = (
-            "عرض عمل جديد بالمغرب\n\n"
-            f"المنصب: {title}\n"
-            f"الشركة أو المشغل: {_value(job.get('company') or job.get('organization'))}\n"
+            f"عرض عمل جديد: {title}\n\n"
+            f"المشغل: {_value(job.get('company') or job.get('organization'))}\n"
             f"المدينة: {_arabic_city(job.get('city') or job.get('location'))}\n"
             f"عدد المناصب: {_value(job.get('positions_count') or job.get('positions'))}\n"
             f"آخر أجل أو تاريخ النشر: {_value(deadline_or_date)}\n\n"
-            "رابط التفاصيل أو طريقة الترشيح في أول تعليق.\n\n"
-            "تابع الصفحة للمزيد من فرص العمل بالمغرب.\n\n"
+            "طريقة التقديم والرابط في أول تعليق.\n"
+            "راجع تفاصيل العرض قبل إرسال الترشيح.\n\n"
             f"المصدر: {source_name}"
         )
         category = "عرض عمل"
 
-    first_comment = "رابط التفاصيل أو التقديم:\n" + link if link else "رابط التفاصيل أو التقديم غير متوفر."
+    first_comment = (
+        "رابط التفاصيل أو التقديم:\n" + link
+        if link
+        else "رابط التفاصيل أو التقديم غير متوفر في المصدر."
+    )
     if job.get("application_method"):
         first_comment += f"\n\nطريقة الترشيح: {job['application_method']}"
 

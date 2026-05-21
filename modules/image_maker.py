@@ -25,10 +25,40 @@ LOGGER = logging.getLogger(__name__)
 ASSETS_DIR = Path("assets")
 FONTS_DIR = ASSETS_DIR / "fonts"
 OUTPUT_DIR = Path("data/generated_images")
-TEMPLATE_PATH = ASSETS_DIR / "job_template.png"
+TEMPLATE_PATHS = (
+    ASSETS_DIR / "job_template.png",
+    ASSETS_DIR / "fonts" / "assets" / "job_template.png",
+)
 CANVAS_SIZE = 1080
 REQUEST_TIMEOUT = 12
 HAS_RAQM = bool(features.check("raqm"))
+SOURCE_TRANSLATIONS = {
+    "Ministere Industrie Commerce": "وزارة الصناعة والتجارة",
+    "Ministere Equipement Eau": "وزارة التجهيز والماء",
+    "Ministere Transport Logistique": "وزارة النقل واللوجستيك",
+    "Ministere Habitat Urbanisme": "وزارة إعداد التراب الوطني والتعمير والإسكان",
+    "Emploi Public": "بوابة التشغيل العمومي",
+    "ANAPEC": "أنابيك",
+    "OFPPT": "مكتب التكوين المهني وإنعاش الشغل",
+    "Enseignement Superieur Recrutement": "وزارة التعليم العالي والبحث العلمي",
+    "Collectivites Territoriales": "الجماعات الترابية",
+}
+CITY_TRANSLATIONS = {
+    "rabat": "الرباط",
+    "casablanca": "الدار البيضاء",
+    "casa-nouacer": "الدار البيضاء - النواصر",
+    "marrakech": "مراكش",
+    "tanger": "طنجة",
+    "fes": "فاس",
+    "fès": "فاس",
+    "agadir": "أكادير",
+    "sale": "سلا",
+    "salé": "سلا",
+    "kenitra": "القنيطرة",
+    "oujda": "وجدة",
+    "meknes": "مكناس",
+    "el jadida": "الجديدة",
+}
 
 
 @dataclass(frozen=True)
@@ -47,20 +77,21 @@ class Box:
         return self.y + self.h
 
 
-TITLE_BOX = Box(92, 190, 896, 150)
-ORGANIZER_BOX = Box(92, 360, 896, 82)
+CONTENT_BOX = Box(86, 142, 908, 720)
+TITLE_BOX = Box(126, 186, 828, 126)
+ORGANIZER_BOX = Box(126, 328, 828, 78)
 HIGHLIGHT_BOXES = [
-    Box(92, 468, 280, 120),
-    Box(400, 468, 280, 120),
-    Box(708, 468, 280, 120),
+    Box(126, 434, 252, 104),
+    Box(414, 434, 252, 104),
+    Box(702, 434, 252, 104),
 ]
 INFO_GRID_BOXES = [
-    Box(92, 616, 432, 78),
-    Box(556, 616, 432, 78),
-    Box(92, 708, 432, 78),
-    Box(556, 708, 432, 78),
-    Box(92, 800, 432, 78),
-    Box(556, 800, 432, 78),
+    Box(126, 574, 396, 76),
+    Box(558, 574, 396, 76),
+    Box(126, 668, 396, 76),
+    Box(558, 668, 396, 76),
+    Box(126, 762, 396, 76),
+    Box(558, 762, 396, 76),
 ]
 
 
@@ -80,6 +111,18 @@ def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.I
             Path("/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf")
             if bold
             else Path("/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf"),
+            Path("/usr/share/fonts/truetype/noto/NotoSansArabic-Bold.ttf")
+            if bold
+            else Path("/usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf"),
+            Path("/usr/share/fonts/truetype/noto/NotoKufiArabic-Bold.ttf")
+            if bold
+            else Path("/usr/share/fonts/truetype/noto/NotoKufiArabic-Regular.ttf"),
+            Path("/usr/share/fonts/opentype/noto/NotoNaskhArabic-Bold.ttf")
+            if bold
+            else Path("/usr/share/fonts/opentype/noto/NotoNaskhArabic-Regular.ttf"),
+            Path("/usr/share/fonts/opentype/noto/NotoSansArabic-Bold.ttf")
+            if bold
+            else Path("/usr/share/fonts/opentype/noto/NotoSansArabic-Regular.ttf"),
             Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
             if bold
             else Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
@@ -150,7 +193,7 @@ def _draw_rtl(
 
 def _value_or_missing(value: Any) -> str:
     text = str(value).strip() if value else ""
-    return text or "غير محدد في الإعلان"
+    return text or "غير محدد"
 
 
 def _first_value(job: dict[str, Any], *keys: str) -> str:
@@ -161,10 +204,18 @@ def _first_value(job: dict[str, Any], *keys: str) -> str:
     return ""
 
 
+def _display_organization(job: dict[str, Any]) -> str:
+    value = _first_value(job, "organization", "company", "source_name", "source")
+    return SOURCE_TRANSLATIONS.get(value, value)
+
+
 def _clean_location(value: Any) -> str:
     text = str(value or "").strip()
-    if not text or text.lower() in {"morocco", "maroc", "المغرب"}:
+    lowered = text.lower()
+    if not text or lowered in {"morocco", "maroc", "المغرب"}:
         return "على الصعيد الوطني"
+    if lowered in CITY_TRANSLATIONS:
+        return CITY_TRANSLATIONS[lowered]
     return text
 
 
@@ -314,11 +365,14 @@ def _draw_moroccan_frame(draw: ImageDraw.ImageDraw) -> None:
 
 
 def _base_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
-    if TEMPLATE_PATH.exists():
-        image = Image.open(TEMPLATE_PATH).convert("RGBA")
-        if image.size != (CANVAS_SIZE, CANVAS_SIZE):
-            image = image.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
-    else:
+    image = None
+    for template_path in TEMPLATE_PATHS:
+        if template_path.exists():
+            image = Image.open(template_path).convert("RGBA")
+            if image.size != (CANVAS_SIZE, CANVAS_SIZE):
+                image = image.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
+            break
+    if image is None:
         image = Image.new("RGBA", (CANVAS_SIZE, CANVAS_SIZE), "#071422")
         draw = ImageDraw.Draw(image)
         _draw_moroccan_frame(draw)
@@ -332,7 +386,7 @@ def _detail_items(job: dict[str, Any]) -> list[tuple[str, str]]:
     )
     deposit_type = _first_value(job, "deposit_type", "submission_type")
     if not deposit_type and _first_value(job, "application_url", "announcement_url", "url"):
-        deposit_type = "الإيداع الإلكتروني أو حسب الإعلان"
+        deposit_type = "حسب الإعلان الرسمي"
 
     candidates = [
         ("التخصص", _first_value(job, "specialty", "speciality", "field")),
@@ -389,31 +443,24 @@ def create_job_image(job: dict[str, Any], post_data: dict[str, Any]) -> Path:
     image, draw = _base_canvas()
 
     title = str(post_data.get("image_title") or job.get("title") or "فرصة عمل جديدة").strip()
-    brand_font = _font(30, bold=True)
-    brand_small_font = _font(17, bold=True)
-    category_font = _font(28, bold=True)
+    category_font = _font(26, bold=True)
     label_font = _font(24, bold=True)
     org_font = _fit_font_for_box(
         draw,
-        _value_or_missing(job.get("company")),
+        _value_or_missing(_display_organization(job)),
         Box(ORGANIZER_BOX.x + 28, ORGANIZER_BOX.y + 34, ORGANIZER_BOX.w - 56, 34),
         start=28,
         minimum=20,
         max_lines=1,
     )
 
-    draw.text((540, 42), "Offres d'emploi", font=brand_font, fill="#ffffff", anchor="ma")
-    draw.line((462, 76, 528, 76), fill="#08743f", width=3)
-    draw.line((552, 76, 618, 76), fill="#cf1f28", width=3)
-    draw.text((540, 88), "par badr ai", font=brand_small_font, fill="#d4e5de", anchor="ma")
-
     category = _category_label(job, post_data)
-    draw.rounded_rectangle((724, 148, 988, 194), radius=23, fill="#071422")
-    _draw_wrapped_center(draw, category, Box(742, 155, 228, 32), category_font, "#ffffff", max_lines=1)
-    draw.rounded_rectangle((92, 148, 308, 194), radius=23, fill="#f4eee5", outline="#e6b25c", width=2)
-    _draw_wrapped_center(draw, "إعلان رسمي", Box(112, 155, 176, 32), category_font, "#8d5a13", max_lines=1)
+    draw.rounded_rectangle((724, 160, 958, 206), radius=23, fill="#071422")
+    _draw_wrapped_center(draw, category, Box(742, 167, 198, 32), category_font, "#ffffff", max_lines=1)
+    draw.rounded_rectangle((126, 160, 324, 206), radius=23, fill="#fff7ed", outline="#e6b25c", width=2)
+    _draw_wrapped_center(draw, "إعلان موثق", Box(146, 167, 158, 32), category_font, "#8d5a13", max_lines=1)
 
-    title_font = _fit_font_for_box(draw, title, TITLE_BOX, start=54, minimum=35, max_lines=3)
+    title_font = _fit_font_for_box(draw, title, TITLE_BOX, start=50, minimum=34, max_lines=3)
     _draw_wrapped_center(draw, title, TITLE_BOX, title_font, "#111820", line_spacing=12, max_lines=3)
 
     _draw_soft_shadow(draw, ORGANIZER_BOX, radius=18)
@@ -434,7 +481,7 @@ def create_job_image(job: dict[str, Any], post_data: dict[str, Any]) -> Path:
     )
     _draw_wrapped_right(
         draw,
-        _value_or_missing(job.get("company")),
+        _value_or_missing(_display_organization(job)),
         Box(ORGANIZER_BOX.x + 28, ORGANIZER_BOX.y + 44, ORGANIZER_BOX.w - 56, 34),
         org_font,
         "#111820",
