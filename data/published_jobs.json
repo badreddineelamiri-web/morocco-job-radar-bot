@@ -493,5 +493,26 @@
         "id": "961739952887737_2694355450949465"
       }
     }
+  },
+  "4806f009a3faa87b5ec3": {
+    "title": "Fiche poste Directeur DSEVE",
+    "company": "Ministere Industrie Commerce",
+    "source": "Ministere Industrie Commerce",
+    "deadline": "",
+    "exam_date": "",
+    "published_at_source": "",
+    "announcement_url": "https://www.mcinet.gov.ma/sites/default/files/docs_emplois/Fiche%20poste%20DSEVE.docx",
+    "application_url": "https://www.mcinet.gov.ma/sites/default/files/docs_emplois/Fiche%20poste%20DSEVE.docx",
+    "published_at": "2026-05-21T09:38:33.145478",
+    "post_result": {
+      "ok": true,
+      "photo": {
+        "id": "974497121612020",
+        "post_id": "103026497833721_974497158278683"
+      },
+      "comment": {
+        "id": "974497121612020_949245661310973"
+      }
+    }
   }
 }
