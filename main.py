@@ -172,6 +172,9 @@ def main() -> None:
                 published_count += 1
                 if not _dry_run_enabled():
                     save_state(state)
+            elif not _dry_run_enabled():
+                save_state(state)
+                raise SystemExit("Live publishing failed for an accepted job; see the logs above.")
             if published_count >= max_jobs:
                 LOGGER.info("Publish target reached: %d/%d.", published_count, max_jobs)
                 save_state(state)
