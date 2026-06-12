@@ -25,44 +25,44 @@
   "failed_sources": {
     "Ministere Equipement Eau": {
       "last_error": "https://www.equipement.gov.ma/Formation/Recrutement/Pages/Concours-de-recrutement.aspx failed after 2 request(s): HTTPSConnectionPool(host='www.equipement.gov.ma', port=443): Max retries exceeded with url: /Formation/Recrutement/Pages/Concours-de-recrutement.aspx (Caused by NewConnectionError(\"HTTPSConnection(host='www.equipement.gov.ma', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))",
-      "failed_at": "2026-06-11T23:46:02.361889+00:00",
-      "fail_count": 105
+      "failed_at": "2026-06-12T04:46:33.076418+00:00",
+      "fail_count": 106
     },
     "Ministere Transport Logistique": {
       "last_error": "https://www.transport.gov.ma/fr/recrutement-et-carrieres failed after 2 request(s): HTTPSConnectionPool(host='www.transport.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement-et-carrieres (Caused by NewConnectionError(\"HTTPSConnection(host='www.transport.gov.ma', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))",
-      "failed_at": "2026-06-11T23:46:41.741147+00:00",
-      "fail_count": 105
+      "failed_at": "2026-06-12T04:47:10.976856+00:00",
+      "fail_count": 106
     },
     "Ministere Habitat Urbanisme": {
       "last_error": "https://www.mhpv.gov.ma/fr/concours/ failed after 2 request(s): 403 Client Error: Forbidden for url: https://www.mhpv.gov.ma/fr/concours/",
-      "failed_at": "2026-06-11T23:46:47.524625+00:00",
-      "fail_count": 105
+      "failed_at": "2026-06-12T04:47:17.604069+00:00",
+      "fail_count": 106
     },
     "Emploi.ma": {
       "last_error": "https://www.emploi.ma/recherche-jobs-maroc failed after 2 request(s): 403 Client Error: Forbidden for url: https://www.emploi.ma/recherche-jobs-maroc",
-      "failed_at": "2026-06-11T23:46:52.504637+00:00",
-      "fail_count": 105
+      "failed_at": "2026-06-12T04:47:21.957067+00:00",
+      "fail_count": 106
     },
     "ANAPEC": {
-      "last_error": "https://anapec.ma/home-page-o1/chercheur-emploi/offres-demploi/ failed after 3 request(s): HTTPSConnectionPool(host='anapec.ma', port=443): Max retries exceeded with url: /home-page-o1/chercheur-emploi/offres-demploi/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='anapec.ma', port=443) at 0x7f02f3ba8740>, 'Connection to anapec.ma timed out. (connect timeout=25)'))",
-      "failed_at": "2026-06-11T23:44:01.819416+00:00",
-      "fail_count": 105
+      "last_error": "https://anapec.ma/home-page-o1/chercheur-emploi/offres-demploi/ failed after 3 request(s): HTTPSConnectionPool(host='anapec.ma', port=443): Max retries exceeded with url: /home-page-o1/chercheur-emploi/offres-demploi/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='anapec.ma', port=443) at 0x7f786e08c560>, 'Connection to anapec.ma timed out. (connect timeout=25)'))",
+      "failed_at": "2026-06-12T04:44:28.111976+00:00",
+      "fail_count": 106
     },
     "Enseignement Superieur Recrutement": {
-      "last_error": "https://recrutement.enssup.gov.ma/annonce/ failed after 2 request(s): HTTPSConnectionPool(host='recrutement.enssup.gov.ma', port=443): Max retries exceeded with url: /annonce/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='recrutement.enssup.gov.ma', port=443) at 0x7f02f3ba9b50>, 'Connection to recrutement.enssup.gov.ma timed out. (connect timeout=20)'))",
-      "failed_at": "2026-06-11T23:44:49.051381+00:00",
-      "fail_count": 105
+      "last_error": "https://recrutement.enssup.gov.ma/annonce/ failed after 2 request(s): HTTPSConnectionPool(host='recrutement.enssup.gov.ma', port=443): Max retries exceeded with url: /annonce/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='recrutement.enssup.gov.ma', port=443) at 0x7f786e08d940>, 'Connection to recrutement.enssup.gov.ma timed out. (connect timeout=20)'))",
+      "failed_at": "2026-06-12T04:45:17.863004+00:00",
+      "fail_count": 106
     },
     "Collectivites Territoriales": {
-      "last_error": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours failed after 2 request(s): HTTPSConnectionPool(host='www.collectivites-territoriales.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement/concours (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.collectivites-territoriales.gov.ma', port=443) at 0x7f02f3baad20>, 'Connection to www.collectivites-territoriales.gov.ma timed out. (connect timeout=20)'))",
-      "failed_at": "2026-06-11T23:45:32.516934+00:00",
-      "fail_count": 105
+      "last_error": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours failed after 2 request(s): HTTPSConnectionPool(host='www.collectivites-territoriales.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement/concours (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.collectivites-territoriales.gov.ma', port=443) at 0x7f786e08eb40>, 'Connection to www.collectivites-territoriales.gov.ma timed out. (connect timeout=20)'))",
+      "failed_at": "2026-06-12T04:46:03.042779+00:00",
+      "fail_count": 106
     },
     "Emploi Public": {
-      "last_error": "https://www.emploi-public.ma/fr/concours-liste failed after 2 request(s): HTTPSConnectionPool(host='www.emploi-public.ma', port=443): Max retries exceeded with url: /fr/concours-liste (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.emploi-public.ma', port=443) at 0x7f02f30bc2c0>, 'Connection to www.emploi-public.ma timed out. (connect timeout=20)'))",
-      "failed_at": "2026-06-11T23:47:39.782507+00:00",
-      "fail_count": 88
+      "last_error": "https://www.emploi-public.ma/fr/concours-liste failed after 2 request(s): HTTPSConnectionPool(host='www.emploi-public.ma', port=443): Max retries exceeded with url: /fr/concours-liste (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.emploi-public.ma', port=443) at 0x7f786d5bc350>, 'Connection to www.emploi-public.ma timed out. (connect timeout=20)'))",
+      "failed_at": "2026-06-12T04:48:10.491124+00:00",
+      "fail_count": 89
     }
   },
-  "last_run_at": "2026-06-11T23:47:39.782929+00:00"
+  "last_run_at": "2026-06-12T04:48:10.491697+00:00"
 }
