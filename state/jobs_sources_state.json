@@ -25,39 +25,44 @@
   "failed_sources": {
     "Ministere Equipement Eau": {
       "last_error": "https://www.equipement.gov.ma/Formation/Recrutement/Pages/Concours-de-recrutement.aspx failed after 2 request(s): HTTPSConnectionPool(host='www.equipement.gov.ma', port=443): Max retries exceeded with url: /Formation/Recrutement/Pages/Concours-de-recrutement.aspx (Caused by NewConnectionError(\"HTTPSConnection(host='www.equipement.gov.ma', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))",
-      "failed_at": "2026-07-13T00:03:37.079588+00:00",
-      "fail_count": 354
+      "failed_at": "2026-07-13T03:54:46.631568+00:00",
+      "fail_count": 355
     },
     "Ministere Transport Logistique": {
       "last_error": "https://www.transport.gov.ma/fr/recrutement-et-carrieres failed after 2 request(s): HTTPSConnectionPool(host='www.transport.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement-et-carrieres (Caused by NewConnectionError(\"HTTPSConnection(host='www.transport.gov.ma', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))",
-      "failed_at": "2026-07-13T00:04:15.991187+00:00",
-      "fail_count": 354
+      "failed_at": "2026-07-13T03:55:22.937096+00:00",
+      "fail_count": 355
     },
     "Ministere Habitat Urbanisme": {
       "last_error": "https://www.mhpv.gov.ma/fr/concours/ failed after 2 request(s): 403 Client Error: Forbidden for url: https://www.mhpv.gov.ma/fr/concours/",
-      "failed_at": "2026-07-13T00:04:20.131037+00:00",
-      "fail_count": 354
+      "failed_at": "2026-07-13T03:55:28.821292+00:00",
+      "fail_count": 355
     },
     "Emploi.ma": {
       "last_error": "https://www.emploi.ma/recherche-jobs-maroc failed after 2 request(s): 403 Client Error: Forbidden for url: https://www.emploi.ma/recherche-jobs-maroc",
-      "failed_at": "2026-07-13T00:04:23.759972+00:00",
-      "fail_count": 354
+      "failed_at": "2026-07-13T03:55:33.824314+00:00",
+      "fail_count": 355
     },
     "ANAPEC": {
-      "last_error": "https://anapec.ma/home-page-o1/chercheur-emploi/offres-demploi/ failed after 3 request(s): HTTPSConnectionPool(host='anapec.ma', port=443): Max retries exceeded with url: /home-page-o1/chercheur-emploi/offres-demploi/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='anapec.ma', port=443) at 0x7f5c930f46e0>, 'Connection to anapec.ma timed out. (connect timeout=25)'))",
-      "failed_at": "2026-07-13T00:01:40.790956+00:00",
-      "fail_count": 354
+      "last_error": "https://anapec.ma/home-page-o1/chercheur-emploi/offres-demploi/ failed after 3 request(s): HTTPSConnectionPool(host='anapec.ma', port=443): Max retries exceeded with url: /home-page-o1/chercheur-emploi/offres-demploi/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='anapec.ma', port=443) at 0x7f9e6c535850>, 'Connection to anapec.ma timed out. (connect timeout=25)'))",
+      "failed_at": "2026-07-13T03:52:46.892369+00:00",
+      "fail_count": 355
     },
     "Enseignement Superieur Recrutement": {
-      "last_error": "https://recrutement.enssup.gov.ma/annonce/ failed after 2 request(s): HTTPSConnectionPool(host='recrutement.enssup.gov.ma', port=443): Max retries exceeded with url: /annonce/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='recrutement.enssup.gov.ma', port=443) at 0x7f5c930f59a0>, 'Connection to recrutement.enssup.gov.ma timed out. (connect timeout=20)'))",
-      "failed_at": "2026-07-13T00:02:25.605227+00:00",
-      "fail_count": 354
+      "last_error": "https://recrutement.enssup.gov.ma/annonce/ failed after 2 request(s): HTTPSConnectionPool(host='recrutement.enssup.gov.ma', port=443): Max retries exceeded with url: /annonce/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='recrutement.enssup.gov.ma', port=443) at 0x7f9e6c536c60>, 'Connection to recrutement.enssup.gov.ma timed out. (connect timeout=20)'))",
+      "failed_at": "2026-07-13T03:53:31.102566+00:00",
+      "fail_count": 355
     },
     "Collectivites Territoriales": {
-      "last_error": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours failed after 2 request(s): HTTPSConnectionPool(host='www.collectivites-territoriales.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement/concours (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.collectivites-territoriales.gov.ma', port=443) at 0x7f5c930f6cc0>, 'Connection to www.collectivites-territoriales.gov.ma timed out. (connect timeout=20)'))",
-      "failed_at": "2026-07-13T00:03:09.562162+00:00",
-      "fail_count": 354
+      "last_error": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours failed after 2 request(s): HTTPSConnectionPool(host='www.collectivites-territoriales.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement/concours (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.collectivites-territoriales.gov.ma', port=443) at 0x7f9e6c537e60>, 'Connection to www.collectivites-territoriales.gov.ma timed out. (connect timeout=20)'))",
+      "failed_at": "2026-07-13T03:54:15.583180+00:00",
+      "fail_count": 355
+    },
+    "MarocAnnonces Emploi": {
+      "last_error": "https://www.marocannonces.com/emploi failed after 2 request(s): 415 Client Error: Unsupported Media Type for url: https://www.marocannonces.com/emploi",
+      "failed_at": "2026-07-13T03:55:40.060823+00:00",
+      "fail_count": 1
     }
   },
-  "last_run_at": "2026-07-13T00:04:29.592412+00:00"
+  "last_run_at": "2026-07-13T03:55:43.585071+00:00"
 }
