@@ -57,7 +57,12 @@
       "last_error": "https://www.collectivites-territoriales.gov.ma/fr/recrutement/concours failed after 2 request(s): HTTPSConnectionPool(host='www.collectivites-territoriales.gov.ma', port=443): Max retries exceeded with url: /fr/recrutement/concours (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.collectivites-territoriales.gov.ma', port=443) at 0x7fedb4148e90>, 'Connection to www.collectivites-territoriales.gov.ma timed out. (connect timeout=20)'))",
       "failed_at": "2026-08-08T10:42:03.809215+00:00",
       "fail_count": 609
+    },
+    "MarocAnnonces Emploi": {
+      "last_error": "https://www.marocannonces.com/emploi failed after 2 request(s): HTTPSConnectionPool(host='www.marocannonces.com', port=443): Max retries exceeded with url: /emploi (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.marocannonces.com', port=443) at 0x7fd53ae4e030>, 'Connection to www.marocannonces.com timed out. (connect timeout=20)'))",
+      "failed_at": "2026-08-08T11:35:00.511543+00:00",
+      "fail_count": 1
     }
   },
-  "last_run_at": "2026-08-08T10:43:35.110108+00:00"
+  "last_run_at": "2026-08-08T11:35:04.247346+00:00"
 }
